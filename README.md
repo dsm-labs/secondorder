@@ -1,6 +1,3 @@
-# secondorder
-Enterprise cyber risk and vulnerability management platform
-
 # SecondOrder
 
 SecondOrder is an enterprise cyber risk and vulnerability management platform that combines technical vulnerability data with business context to help organizations identify and prioritize their most significant cybersecurity risks.
