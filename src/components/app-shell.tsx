@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const navigationItems = [
   { label: "Dashboard", href: "/" },
@@ -14,6 +17,8 @@ export default function AppShell({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+
   return (
     <div className="min-h-screen bg-slate-100 text-slate-950">
       <div className="flex min-h-screen">
@@ -24,15 +29,23 @@ export default function AppShell({
           </div>
 
           <nav className="mt-10 space-y-1" aria-label="Primary navigation">
-            {navigationItems.map((item) => (
-              <Link
-                className="block rounded-md px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-900 hover:text-white"
-                href={item.href}
-                key={item.href}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navigationItems.map((item) => {
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  className={`block rounded-md px-3 py-2 text-sm font-medium transition hover:bg-slate-900 hover:text-white ${
+                    isActive
+                      ? "bg-slate-800 text-white"
+                      : "text-slate-300"
+                  }`}
+                  href={item.href}
+                  key={item.href}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </aside>
 
