@@ -18,6 +18,9 @@ export default function AppShell({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const currentPageTitle =
+    navigationItems.find((item) => item.href === pathname)?.label ??
+    "SecondOrder";
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-950">
@@ -55,7 +58,7 @@ export default function AppShell({
               <div>
                 <p className="text-sm font-medium text-slate-500">Phase 1</p>
                 <h1 className="text-2xl font-semibold text-slate-950">
-                  Application Shell
+                  {currentPageTitle}
                 </h1>
               </div>
               <p className="text-sm text-slate-500">SecondOrder</p>
