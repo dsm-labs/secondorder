@@ -1,131 +1,193 @@
-SecondOrder — final goal
-We are building a deployed enterprise cyber risk and vulnerability management platform that shows both sides of your degree:
-Cybersecurity
-vulnerabilities
-CVSS/severity
-asset exposure
-remediation
-access control
-audit logging
-scan/import data
-MIS / business systems
-asset ownership
-departments
-business criticality
-workflows
-reporting
-risk prioritization
-executive dashboards
-organizational impact
-The key idea remains:
-A vulnerability should not be prioritized only because its CVSS score is high. SecondOrder should combine technical severity with business context to determine what actually matters most to the organization.
+# SecondOrder v1 Roadmap
+
+## Final Goal
+
+SecondOrder is a deployed enterprise cyber risk and vulnerability management platform that combines cybersecurity data with MIS and business context.
+
+The project should demonstrate both sides of the degree:
+
+### Cybersecurity
+
+* Vulnerabilities
+* CVSS and severity
+* Asset exposure
+* Remediation
+* Access control
+* Audit logging
+* Scan and vulnerability-data imports
+
+### MIS / Business Systems
+
+* Asset ownership
+* Departments
+* Business criticality
+* Workflows
+* Reporting
+* Risk prioritization
+* Executive dashboards
+* Organizational impact
+
+The core idea is that a vulnerability should not be prioritized only because its CVSS score is high.
+
+SecondOrder should combine technical severity with business context to determine what actually matters most to the organization.
+
 That is the heart of the project.
 
-The master build plan
-Phase 0 — Foundation
-We are here right now.
-Already complete:
-✅ GitHub repo created
-✅ Repo published
-✅ VS Code connected
-✅ README.md
-✅ PROJECT_SPEC.md
-✅ .gitignore
-✅ First proper commit/push
-Still to do:
-Choose/finalize tech stack
-Create actual application
-Install dependencies
-Confirm it runs locally
-Establish our Git/commit workflow
-Phase 0 finish line
-You can run:
-SecondOrder
-↓
-localhost
-↓
-actual webpage appears
-No features required yet.
+---
 
-Phase 1 — Application shell
-We build the visual skeleton of SecondOrder.
-Pages:
-Dashboard
-Assets
-Vulnerabilities
-Risks
-Remediation
-Reports
-Plus:
-sidebar navigation
-header
-responsive layout
-professional enterprise SaaS appearance
-At this point, most data can still be fake.
-Finish line
-You can navigate around SecondOrder and it already looks like a real product, even though the backend isn't fully alive yet.
+# Phase 0 — Foundation
 
-Phase 2 — Database + data model
-This is when SecondOrder stops being a mockup.
-We create the database structure for things like:
-Users
-Departments
-Assets
-Vulnerabilities
-Risk Records
-Remediation Tasks
-Audit Events
-Relationships matter.
+Establish the project foundation before building application features.
+
+Tasks include:
+
+* Create and publish the GitHub repository
+* Create the README
+* Create the project specification
+* Create the development roadmap
+* Establish the Git workflow
+* Choose and configure the technology stack
+* Create the application
+* Install dependencies
+* Configure the local development environment
+* Confirm the application runs locally
+
+## Phase 0 Finish Line
+
+SecondOrder can be started locally and an actual webpage appears in the browser.
+
+No product features are required yet.
+
+---
+
+# Phase 1 — Application Shell / UI
+
+Build the visual skeleton of SecondOrder.
+
+Create pages for:
+
+* Dashboard
+* Assets
+* Vulnerabilities
+* Risks
+* Remediation
+* Reports
+
+The application should include:
+
+* Sidebar navigation
+* Header
+* Responsive layout
+* Consistent page structure
+* Professional enterprise SaaS appearance
+
+At this stage, most displayed data may be hard-coded or fake.
+
+The goal is to establish the visual structure and user experience before connecting the application to a real backend.
+
+## Phase 1 Finish Line
+
+A user can navigate throughout SecondOrder and the application already looks like a realistic enterprise product even though the backend is not fully implemented.
+
+---
+
+# Phase 2 — Database and Data Model
+
+Replace hard-coded application data with a real structured database.
+
+Create the data model for:
+
+* Users
+* Departments
+* Assets
+* Vulnerabilities
+* Risk Records
+* Remediation Tasks
+* Audit Events
+
+Define relationships between the entities.
+
 For example:
+
 Department
-   ↓
+↓
 owns
-   ↓
+↓
 Asset
-   ↓
+↓
 has
-   ↓
+↓
 Vulnerabilities
-We'll also generate realistic demo company data.
-Finish line
-SecondOrder is reading real structured data from a database instead of hard-coded fake text.
 
-Phase 3 — Core functionality
-Now you can actually use it.
-Assets
-Create:
-Production Web Server
-Edit it.
-View it.
-Delete/archive it.
-Assign:
-owner
-department
-operating system
-IP address
-criticality
-exposure
-Vulnerabilities
-Add things like:
-CVE-XXXX-XXXX
-Then link vulnerabilities to assets.
-Also add:
-search
-filters
-sorting
-status tracking
-Finish line
-SecondOrder becomes an actual asset + vulnerability management system.
+Create realistic demo company data to populate the system.
 
-Phase 4 — The feature that makes SecondOrder special
-Business-aware risk engine
-THIS is arguably the centerpiece of the whole portfolio project.
-Instead of:
-CVSS 9.8
-=
-OMG PRIORITY #1
-SecondOrder considers additional factors.
-Something roughly like:
+## Phase 2 Finish Line
+
+SecondOrder reads structured information from a real database instead of relying on hard-coded application data.
+
+---
+
+# Phase 3 — Core Functionality
+
+Make the asset and vulnerability management portions of SecondOrder functional.
+
+## Assets
+
+Users should be able to:
+
+* Create assets
+* View assets
+* Edit assets
+* Delete or archive assets
+
+Assets should include information such as:
+
+* Owner
+* Department
+* Operating system
+* IP address
+* Business criticality
+* Internet exposure
+
+## Vulnerabilities
+
+Users should be able to:
+
+* Add vulnerabilities
+* View vulnerabilities
+* Edit vulnerabilities
+* Associate vulnerabilities with affected assets
+* Track vulnerability status
+
+Add:
+
+* Search
+* Filters
+* Sorting
+* Status tracking
+
+## Phase 3 Finish Line
+
+SecondOrder functions as a real asset and vulnerability management system.
+
+---
+
+# Phase 4 — Business-Aware Risk Engine
+
+Build the feature that differentiates SecondOrder from a basic vulnerability tracker.
+
+SecondOrder should prioritize organizational risk using more than CVSS alone.
+
+Risk factors may include:
+
+* Technical severity
+* Asset criticality
+* Internet exposure
+* Data sensitivity
+* Business impact
+
+Conceptually:
+
 Technical Severity
 +
 Asset Criticality
@@ -135,206 +197,261 @@ Internet Exposure
 Data Sensitivity
 +
 Business Impact
-=
+===============
+
 Organizational Risk
-Example:
-Asset A
-Internal testing server
-CVSS: 9.8
-Business criticality: Low
-Internet-facing: No
-Sensitive data: No
-SecondOrder might rate it:
-Medium/High organizational risk
-Meanwhile:
-Asset B
-Customer payment portal
-CVSS: 8.1
-Business criticality: Critical
-Internet-facing: Yes
-Sensitive data: Yes
-SecondOrder might rate that:
-Critical organizational risk
-Even though its CVSS score is technically lower.
-THAT is the MIS × cybersecurity crossover.
-Finish line
-SecondOrder can explain:
-Why is this vulnerability ranked above that one?
-And show the actual contributing business/security factors.
 
-Phase 5 — Remediation workflow
-Finding problems isn't enough.
-Now the organization has to actually fix them.
-Users can create remediation tasks with:
-assigned employee/team
-priority
-due date
-status
-notes
-related vulnerability
-related asset
-Statuses could be:
-Open
-In Progress
-Awaiting Validation
-Resolved
-Accepted Risk
-SecondOrder highlights:
-overdue remediation
-critical unresolved vulnerabilities
-average remediation time
-workloads
-Finish line
-You can follow:
-Vulnerability found
-↓
-Risk assessed
-↓
-Task assigned
-↓
-Fix implemented
-↓
-Issue resolved
-That's an actual business process.
+For example, a CVSS 9.8 vulnerability on an isolated low-value test system may represent less organizational risk than a CVSS 8.1 vulnerability affecting an internet-facing customer payment system containing sensitive information.
 
-Phase 6 — Authentication + security
-Now we secure our cybersecurity application because having a security platform with admin/admin would be comedy. 😭
-We'll add:
-login
-authenticated sessions
-protected pages
-protected backend routes
-secure password handling
-validation
-proper secret/environment handling
-audit logging
-And importantly:
-Role-Based Access Control
-Likely roles:
-Analyst
-Investigates vulnerabilities and risks.
-IT Admin
-Manages assets and remediation.
-Security Manager
-Oversees risk and remediation.
-Executive
-Gets high-level reports without needing every technical detail.
-Different roles should have different permissions/views.
-Finish line
-SecondOrder behaves like an actual internal enterprise application rather than a public dashboard.
+This is the core MIS × cybersecurity concept behind SecondOrder.
 
-Phase 7 — Dashboards + executive reporting
-Now we turn all that data into useful information.
-Dashboard might show:
-127 Assets
-342 Open Vulnerabilities
-18 Critical Risks
-37 Open Remediation Tasks
-11 Overdue Tasks
-And visualizations such as:
-risk by department
-vulnerabilities by severity
-remediation progress
-highest-risk assets
-risk trends
-exposure breakdown
-risk heatmap
-We'll distinguish between:
-Security analyst information
-and
-Executive information
-because executives generally don't need a 900-row CVE table thrown at their forehead.
-Finish line
+The system should also explain why one vulnerability is prioritized above another by displaying the contributing technical and business factors.
+
+## Phase 4 Finish Line
+
+SecondOrder calculates organizational risk and clearly explains why vulnerabilities receive their priority.
+
+---
+
+# Phase 5 — Remediation Workflow
+
+Turn identified cybersecurity risks into manageable business processes.
+
+Users should be able to create remediation tasks containing:
+
+* Assigned employee or team
+* Priority
+* Due date
+* Status
+* Notes
+* Related vulnerability
+* Related asset
+
+Possible statuses include:
+
+* Open
+* In Progress
+* Awaiting Validation
+* Resolved
+* Accepted Risk
+
+SecondOrder should highlight:
+
+* Overdue remediation
+* Critical unresolved vulnerabilities
+* Average remediation time
+* Remediation workloads
+
+The intended workflow is:
+
+Vulnerability Found
+↓
+Risk Assessed
+↓
+Task Assigned
+↓
+Fix Implemented
+↓
+Issue Resolved
+
+## Phase 5 Finish Line
+
+SecondOrder supports the complete workflow from identifying a vulnerability through tracking and completing remediation.
+
+---
+
+# Phase 6 — Authentication and Security
+
+Secure SecondOrder as a realistic internal enterprise application.
+
+Add:
+
+* Login
+* Authenticated sessions
+* Protected pages
+* Protected backend routes
+* Secure password handling
+* Input validation
+* Secure environment and secret handling
+* Audit logging
+
+## Role-Based Access Control
+
+Implement different user roles.
+
+### Analyst
+
+* Investigates vulnerabilities
+* Reviews risks
+
+### IT Administrator
+
+* Manages assets
+* Handles remediation work
+
+### Security Manager
+
+* Oversees organizational risk
+* Monitors remediation
+
+### Executive
+
+* Views high-level security and business-risk information
+* Does not require the same technical detail as analysts
+
+Different roles should have appropriate permissions and views.
+
+## Phase 6 Finish Line
+
+SecondOrder behaves like a secured internal enterprise application rather than an unrestricted public dashboard.
+
+---
+
+# Phase 7 — Dashboards and Executive Reporting
+
+Turn SecondOrder's data into useful technical and business information.
+
+Dashboard metrics may include:
+
+* Total assets
+* Open vulnerabilities
+* Critical risks
+* Open remediation tasks
+* Overdue remediation tasks
+
+Visualizations may include:
+
+* Risk by department
+* Vulnerabilities by severity
+* Remediation progress
+* Highest-risk assets
+* Risk trends
+* Exposure breakdown
+* Risk heatmap
+
+SecondOrder should distinguish between:
+
+* Security analyst information
+* Executive information
+
+Technical users may need detailed vulnerability data, while leadership should receive higher-level business-risk information.
+
+## Phase 7 Finish Line
+
 SecondOrder clearly communicates both:
-What is technically wrong?
-and:
-What does leadership need to care about?
 
-Phase 8 — Real cybersecurity integration
-This is where we move beyond manually-entered vulnerabilities.
-We'll eventually feed SecondOrder structured scan/security data.
-Potential pipeline:
+* What is technically wrong?
+* What does leadership need to care about?
+
+---
+
+# Phase 8 — Cybersecurity Data Integration
+
+Move beyond manually entered vulnerabilities by importing structured cybersecurity data.
+
+A potential workflow is:
+
 Nmap
 ↓
-scan output
+Scan Output
 ↓
-SecondOrder importer
+SecondOrder Importer
 ↓
-asset identification
+Asset Identification
 ↓
-services discovered
+Services Discovered
 ↓
-vulnerability information
+Vulnerability Information
 ↓
-risk engine
-Potentially also public CVE data.
-We will start with safe sample/import files before doing anything complicated.
-Finish line
-SecondOrder can ingest external cybersecurity data and transform it into actionable organizational risk.
-That's a BIG portfolio milestone.
-
-Phase 9 — Portfolio polish + deployment
-Only after the actual app works.
-Then we make it recruiter-ready.
-We'll add:
-polished responsive UI
-loading states
-empty states
-error handling
-realistic demo company
-demo user/account
-tests for important logic
-screenshots
-architecture diagram
-project documentation
-setup instructions
-technical decisions
-cleaned-up README
-public deployment
-The GitHub README will eventually explain something like:
-Scanner / Data Source
-       ↓
-SecondOrder API
-       ↓
-Database
-       ↓
 Risk Engine
-       ↓
+
+Potential integrations may include:
+
+* Nmap scan data
+* Public CVE information
+* Other structured vulnerability or asset data
+
+Begin with safe sample or structured import files before implementing more complicated integrations.
+
+## Phase 8 Finish Line
+
+SecondOrder can ingest external cybersecurity data and transform it into actionable organizational risk.
+
+---
+
+# Phase 9 — Portfolio Polish and Deployment
+
+Once the application works, prepare it for internship and portfolio review.
+
+Add:
+
+* Polished responsive UI
+* Loading states
+* Empty states
+* Error handling
+* Realistic demo company
+* Demo account and data
+* Tests for important logic
+* Screenshots
+* Architecture diagram
+* Project documentation
+* Setup instructions
+* Explanation of technical decisions
+* Clean README
+* Public deployment
+
+The final architecture should be understandable as something like:
+
+Scanner / Data Source
+↓
+SecondOrder API
+↓
+Database
+↓
+Risk Engine
+↓
 Remediation Workflow
-       ↓
-Analyst + Executive Dashboards
+↓
+Analyst and Executive Dashboards
 
-The actual finish line
-We're DONE with SecondOrder v1 when somebody reviewing your internship application can click the project and:
-Open a publicly deployed SecondOrder.
-Sign into a demo environment.
-See realistic company assets.
-Inspect vulnerabilities affecting them.
-See business context attached to those assets.
-See SecondOrder prioritize vulnerabilities using technical + business risk.
-Create/track remediation work.
-See dashboards and reports.
-See different permissions/users.
-Look at GitHub and understand exactly how the application works.
-At that point you can legitimately describe it as:
-A full-stack enterprise cyber risk and vulnerability management platform that combines technical security findings with organizational business context to prioritize remediation.
-That's the portfolio piece we're chasing.
+---
 
-One extremely important rule
-We do not jump around the roadmap because something looks cool.
-No:
-"Bro let's add AI vulnerability summaries!"
-while our database barely works. 💀
-Our rule is:
+# SecondOrder v1 Definition of Done
+
+SecondOrder v1 is complete when someone reviewing the project for an internship can:
+
+1. Open a publicly deployed SecondOrder instance.
+2. Sign into a demo environment.
+3. View realistic organizational assets.
+4. Inspect vulnerabilities affecting those assets.
+5. See business context associated with the assets.
+6. See SecondOrder prioritize vulnerabilities using technical and business risk.
+7. Create and track remediation work.
+8. View dashboards and reports.
+9. See different user roles and permissions.
+10. Inspect a clean GitHub repository that explains how the application works.
+
+At that point, SecondOrder can be described as:
+
+**A full-stack enterprise cyber risk and vulnerability management platform that combines technical security findings with organizational business context to prioritize remediation.**
+
+---
+
+# Development Rule
+
+Do not jump ahead in the roadmap simply because a later feature looks interesting.
+
+The development order is:
+
 Foundation
 ↓
 UI
 ↓
 Data
 ↓
-Core functionality
+Core Functionality
 ↓
-Risk engine
+Risk Engine
 ↓
 Workflow
 ↓
@@ -345,30 +462,9 @@ Reporting
 Integration
 ↓
 Polish
-And each phase gets:
-build → test → understand → commit → push → next phase
-That is how we're going to fully vibecode this while still ending up with something you understand and can defend in an interview.
-Current tracker
-SecondOrder Progress
 
-[✓] Repo created
-[✓] GitHub published
-[✓] README created
-[✓] Project specification created
-[✓] Initial commit pushed
+Each phase should follow the same process:
 
-[ ] Phase 0 — Application setup      ← WE ARE HERE
-[ ] Phase 1 — UI shell
-[ ] Phase 2 — Database
-[ ] Phase 3 — Core functionality
-[ ] Phase 4 — Risk engine
-[ ] Phase 5 — Remediation workflow
-[ ] Phase 6 — Authentication/security
-[ ] Phase 7 — Dashboards/reporting
-[ ] Phase 8 — Cyber integrations
-[ ] Phase 9 — Portfolio/deployment
+**Build → Test → Understand → Commit → Push → Next Phase**
 
-FINAL: SecondOrder v1 deployed
-That is now our north star.
-Next move is very contained: finish Phase 0 by choosing the stack and getting the first actual SecondOrder webpage running locally. No dashboard building yet, no database yet, no random extras.
-
+Development should remain controlled and incremental so that every major component of SecondOrder can be understood and explained during an interview.
