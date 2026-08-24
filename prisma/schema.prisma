@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +5,232 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum UserRole {
+  ANALYST
+  IT_ADMIN
+  SECURITY_MANAGER
+  EXECUTIVE
+}
+
+enum BusinessCriticality {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AssetStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum VulnerabilitySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum VulnerabilityStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  ACCEPTED_RISK
+}
+
+enum DataSensitivity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BusinessImpact {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum OrganizationalRiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RiskStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  ACCEPTED_RISK
+}
+
+enum RemediationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RemediationStatus {
+  OPEN
+  IN_PROGRESS
+  AWAITING_VALIDATION
+  RESOLVED
+  ACCEPTED_RISK
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  ASSIGN
+  LOGIN
+  LOGOUT
+  STATUS_CHANGE
+}
+
+enum AuditEntityType {
+  USER
+  DEPARTMENT
+  ASSET
+  VULNERABILITY
+  RISK_RECORD
+  REMEDIATION_TASK
+}
+
+model Department {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users  User[]
+  assets Asset[]
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  email        String   @unique
+  role         UserRole
+  departmentId String   @db.Uuid
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  department               Department        @relation(fields: [departmentId], references: [id])
+  ownedAssets              Asset[]
+  assignedRemediationTasks RemediationTask[]
+  auditEvents              AuditEvent[]
+
+  @@index([departmentId])
+}
+
+model Asset {
+  id                  String              @id @default(uuid()) @db.Uuid
+  name                String
+  assetType           String
+  ipAddress           String?
+  operatingSystem     String?
+  departmentId        String              @db.Uuid
+  ownerId             String?             @db.Uuid
+  businessCriticality BusinessCriticality
+  internetExposure    Boolean
+  status              AssetStatus
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  department       Department        @relation(fields: [departmentId], references: [id])
+  owner            User?             @relation(fields: [ownerId], references: [id])
+  vulnerabilities  Vulnerability[]
+  remediationTasks RemediationTask[]
+
+  @@index([departmentId])
+  @@index([ownerId])
+  @@index([status])
+}
+
+model Vulnerability {
+  id              String                @id @default(uuid()) @db.Uuid
+  identifier      String
+  title           String
+  description     String?
+  cvssScore       Decimal               @db.Decimal(3, 1)
+  severity        VulnerabilitySeverity
+  affectedAssetId String                @db.Uuid
+  detectionDate   DateTime
+  status          VulnerabilityStatus
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  affectedAsset    Asset             @relation(fields: [affectedAssetId], references: [id])
+  riskRecord       RiskRecord?
+  remediationTasks RemediationTask[]
+
+  @@unique([identifier, affectedAssetId])
+  @@index([affectedAssetId])
+  @@index([severity])
+  @@index([status])
+}
+
+model RiskRecord {
+  id                      String                  @id @default(uuid()) @db.Uuid
+  vulnerabilityId         String                  @unique @db.Uuid
+  dataSensitivity         DataSensitivity
+  businessImpact          BusinessImpact
+  organizationalRiskScore Decimal                 @db.Decimal(5, 2)
+  organizationalRiskLevel OrganizationalRiskLevel
+  explanation             String?
+  status                  RiskStatus
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  vulnerability Vulnerability @relation(fields: [vulnerabilityId], references: [id])
+
+  @@index([organizationalRiskLevel])
+  @@index([status])
+}
+
+model RemediationTask {
+  id                     String              @id @default(uuid()) @db.Uuid
+  title                  String
+  description            String?
+  assignedUserId         String              @db.Uuid
+  relatedVulnerabilityId String              @db.Uuid
+  relatedAssetId         String              @db.Uuid
+  priority               RemediationPriority
+  dueDate                DateTime
+  status                 RemediationStatus
+  resolutionNotes        String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  assignedUser         User          @relation(fields: [assignedUserId], references: [id])
+  relatedVulnerability Vulnerability @relation(fields: [relatedVulnerabilityId], references: [id])
+  relatedAsset         Asset         @relation(fields: [relatedAssetId], references: [id])
+
+  @@index([assignedUserId])
+  @@index([relatedVulnerabilityId])
+  @@index([relatedAssetId])
+  @@index([status])
+}
+
+model AuditEvent {
+  id          String          @id @default(uuid()) @db.Uuid
+  userId      String          @db.Uuid
+  action      AuditAction
+  entityType  AuditEntityType
+  entityId    String          @db.Uuid
+  description String
+  createdAt   DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
 }
