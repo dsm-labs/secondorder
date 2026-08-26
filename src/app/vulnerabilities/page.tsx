@@ -1,7 +1,30 @@
+import Link from "next/link";
 import PageSection from "@/components/page-section";
+import {
+  Prisma,
+  VulnerabilitySeverity,
+  VulnerabilityStatus,
+  type VulnerabilitySeverity as VulnerabilitySeverityValue,
+  type VulnerabilityStatus as VulnerabilityStatusValue,
+} from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+
+type VulnerabilitiesPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+const sortOptions = [
+  { label: "Detection Date Newest", value: "detection_desc" },
+  { label: "Detection Date Oldest", value: "detection_asc" },
+  { label: "CVSS Score High-Low", value: "cvss_desc" },
+  { label: "CVSS Score Low-High", value: "cvss_asc" },
+  { label: "Severity High-Low", value: "severity_desc" },
+  { label: "Severity Low-High", value: "severity_asc" },
+  { label: "Identifier A-Z", value: "identifier_asc" },
+  { label: "Title A-Z", value: "title_asc" },
+];
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -19,19 +42,225 @@ function formatEnum(value: string) {
     .join(" ");
 }
 
-export default async function VulnerabilitiesPage() {
-  const vulnerabilities = await prisma.vulnerability.findMany({
-    include: {
-      affectedAsset: true,
-    },
-    orderBy: { detectionDate: "desc" },
-  });
+function getSingleParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function isSeverity(
+  value: string | undefined
+): value is VulnerabilitySeverityValue {
+  return value
+    ? Object.values(VulnerabilitySeverity).includes(
+        value as VulnerabilitySeverityValue
+      )
+    : false;
+}
+
+function isStatus(
+  value: string | undefined
+): value is VulnerabilityStatusValue {
+  return value
+    ? Object.values(VulnerabilityStatus).includes(
+        value as VulnerabilityStatusValue
+      )
+    : false;
+}
+
+function getVulnerabilityOrderBy(
+  sort: string | undefined
+): Prisma.VulnerabilityOrderByWithRelationInput {
+  if (sort === "detection_asc") {
+    return { detectionDate: "asc" };
+  }
+
+  if (sort === "cvss_desc") {
+    return { cvssScore: "desc" };
+  }
+
+  if (sort === "cvss_asc") {
+    return { cvssScore: "asc" };
+  }
+
+  if (sort === "severity_desc") {
+    return { severity: "desc" };
+  }
+
+  if (sort === "severity_asc") {
+    return { severity: "asc" };
+  }
+
+  if (sort === "identifier_asc") {
+    return { identifier: "asc" };
+  }
+
+  if (sort === "title_asc") {
+    return { title: "asc" };
+  }
+
+  return { detectionDate: "desc" };
+}
+
+export default async function VulnerabilitiesPage({
+  searchParams,
+}: VulnerabilitiesPageProps) {
+  const params = await searchParams;
+  const query = getSingleParam(params.q)?.trim() ?? "";
+  const severity = getSingleParam(params.severity);
+  const status = getSingleParam(params.status);
+  const affectedAssetId = getSingleParam(params.affectedAssetId) ?? "";
+  const sort = getSingleParam(params.sort) ?? "detection_desc";
+
+  const where: Prisma.VulnerabilityWhereInput = {};
+
+  if (query) {
+    where.OR = [
+      { identifier: { contains: query, mode: "insensitive" } },
+      { title: { contains: query, mode: "insensitive" } },
+      {
+        affectedAsset: {
+          name: { contains: query, mode: "insensitive" },
+        },
+      },
+    ];
+  }
+
+  if (isSeverity(severity)) {
+    where.severity = severity;
+  }
+
+  if (isStatus(status)) {
+    where.status = status;
+  }
+
+  if (affectedAssetId) {
+    where.affectedAssetId = affectedAssetId;
+  }
+
+  const [vulnerabilities, assets] = await Promise.all([
+    prisma.vulnerability.findMany({
+      where,
+      include: {
+        affectedAsset: true,
+      },
+      orderBy: getVulnerabilityOrderBy(sort),
+    }),
+    prisma.asset.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
+  ]);
 
   return (
     <PageSection
       title="Vulnerabilities"
-      subtitle="This section will eventually show vulnerability findings."
+      subtitle="Track vulnerability findings and their affected assets."
     >
+      <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-600">
+            Showing {vulnerabilities.length} vulnerabilit
+            {vulnerabilities.length === 1 ? "y" : "ies"}.
+          </p>
+          <Link
+            className="inline-flex w-fit rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+            href="/vulnerabilities/new"
+          >
+            Add Vulnerability
+          </Link>
+        </div>
+
+        <form className="grid gap-3 lg:grid-cols-5" method="get">
+          <label className="block text-sm font-medium text-slate-700 lg:col-span-2">
+            Search
+            <input
+              className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+              defaultValue={query}
+              name="q"
+              placeholder="Identifier, title, or asset"
+              type="search"
+            />
+          </label>
+
+          <label className="block text-sm font-medium text-slate-700">
+            Severity
+            <select
+              className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+              defaultValue={isSeverity(severity) ? severity : ""}
+              name="severity"
+            >
+              <option value="">All severities</option>
+              {Object.values(VulnerabilitySeverity).map((item) => (
+                <option key={item} value={item}>
+                  {formatEnum(item)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block text-sm font-medium text-slate-700">
+            Status
+            <select
+              className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+              defaultValue={isStatus(status) ? status : ""}
+              name="status"
+            >
+              <option value="">All statuses</option>
+              {Object.values(VulnerabilityStatus).map((item) => (
+                <option key={item} value={item}>
+                  {formatEnum(item)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block text-sm font-medium text-slate-700">
+            Affected Asset
+            <select
+              className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+              defaultValue={affectedAssetId}
+              name="affectedAssetId"
+            >
+              <option value="">All assets</option>
+              {assets.map((asset) => (
+                <option key={asset.id} value={asset.id}>
+                  {asset.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block text-sm font-medium text-slate-700 lg:col-span-2">
+            Sort
+            <select
+              className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+              defaultValue={sort}
+              name="sort"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="flex items-end gap-3">
+            <button
+              className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              type="submit"
+            >
+              Apply
+            </button>
+            <Link
+              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              href="/vulnerabilities"
+            >
+              Reset
+            </Link>
+          </div>
+        </form>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="min-w-[820px] w-full border-collapse text-left">
           <thead>
@@ -63,11 +292,14 @@ export default async function VulnerabilitiesPage() {
             {vulnerabilities.map((item) => (
               <tr className="border-b border-slate-100" key={item.id}>
                 <td className="px-3 py-4 font-medium text-slate-900">
-                  {item.identifier}
+                  <Link
+                    className="text-slate-950 underline-offset-4 hover:underline"
+                    href={`/vulnerabilities/${item.id}`}
+                  >
+                    {item.identifier}
+                  </Link>
                 </td>
-                <td className="px-3 py-4 text-slate-600">
-                  {item.title}
-                </td>
+                <td className="px-3 py-4 text-slate-600">{item.title}</td>
                 <td className="px-3 py-4 text-slate-600">
                   {item.cvssScore.toString()}
                 </td>
@@ -87,6 +319,11 @@ export default async function VulnerabilitiesPage() {
             ))}
           </tbody>
         </table>
+        {vulnerabilities.length === 0 ? (
+          <p className="py-6 text-sm text-slate-500">
+            No vulnerabilities match the current search and filters.
+          </p>
+        ) : null}
       </div>
     </PageSection>
   );
