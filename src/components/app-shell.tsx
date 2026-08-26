@@ -19,7 +19,11 @@ export default function AppShell({
 }>) {
   const pathname = usePathname();
   const currentPageTitle =
-    navigationItems.find((item) => item.href === pathname)?.label ??
+    navigationItems.find((item) =>
+      item.href === "/"
+        ? pathname === item.href
+        : pathname === item.href || pathname.startsWith(`${item.href}/`)
+    )?.label ??
     "SecondOrder";
 
   return (
@@ -36,7 +40,11 @@ export default function AppShell({
             aria-label="Primary navigation"
           >
             {navigationItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive =
+                item.href === "/"
+                  ? pathname === item.href
+                  : pathname === item.href ||
+                    pathname.startsWith(`${item.href}/`);
 
               return (
                 <Link
