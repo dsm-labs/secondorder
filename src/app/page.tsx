@@ -1,13 +1,39 @@
 import PageSection from "@/components/page-section";
+import prisma from "@/lib/prisma";
+import {
+  OrganizationalRiskLevel,
+  RemediationStatus,
+  VulnerabilityStatus,
+} from "@/generated/prisma/client";
 
-const dashboardMetrics = [
-  { label: "Total Assets", value: "128" },
-  { label: "Open Vulnerabilities", value: "342" },
-  { label: "Critical Risks", value: "18" },
-  { label: "Open Remediation Tasks", value: "37" }
-];
+export const dynamic = "force-dynamic";
 
-export default function Home() {
+export default async function Home() {
+  const [
+    totalAssets,
+    openVulnerabilities,
+    criticalRisks,
+    openRemediationTasks,
+  ] = await Promise.all([
+    prisma.asset.count(),
+    prisma.vulnerability.count({
+      where: { status: VulnerabilityStatus.OPEN },
+    }),
+    prisma.riskRecord.count({
+      where: { organizationalRiskLevel: OrganizationalRiskLevel.CRITICAL },
+    }),
+    prisma.remediationTask.count({
+      where: { status: RemediationStatus.OPEN },
+    }),
+  ]);
+
+  const dashboardMetrics = [
+    { label: "Total Assets", value: totalAssets.toString() },
+    { label: "Open Vulnerabilities", value: openVulnerabilities.toString() },
+    { label: "Critical Risks", value: criticalRisks.toString() },
+    { label: "Open Remediation Tasks", value: openRemediationTasks.toString() },
+  ];
+
   return (
     <PageSection
       title="Dashboard"

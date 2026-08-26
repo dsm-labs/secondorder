@@ -1,49 +1,25 @@
 import PageSection from "@/components/page-section";
+import prisma from "@/lib/prisma";
 
-const assets = [
-  {
-    name: "Customer Portal",
-    type: "Web Application",
-    ipAddress: "10.20.14.12",
-    operatingSystem: "Ubuntu Server 22.04",
-    department: "Sales",
-    businessCriticality: "Critical",
-    internetExposure: "Yes",
-    status: "Active"
-  },
-  {
-    name: "Finance Database",
-    type: "Database Server",
-    ipAddress: "10.20.30.8",
-    operatingSystem: "PostgreSQL on Linux",
-    department: "Finance",
-    businessCriticality: "Critical",
-    internetExposure: "No",
-    status: "Active"
-  },
-  {
-    name: "HR File Share",
-    type: "File Server",
-    ipAddress: "10.20.22.15",
-    operatingSystem: "Windows Server 2022",
-    department: "Human Resources",
-    businessCriticality: "High",
-    internetExposure: "No",
-    status: "Active"
-  },
-  {
-    name: "Workstation Pool A",
-    type: "Endpoint Group",
-    ipAddress: "10.20.40.0/24",
-    operatingSystem: "Windows 11 Enterprise",
-    department: "Operations",
-    businessCriticality: "Medium",
-    internetExposure: "No",
-    status: "Active"
-  }
-];
+export const dynamic = "force-dynamic";
 
-export default function AssetsPage() {
+function formatEnum(value: string) {
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+export default async function AssetsPage() {
+  const assets = await prisma.asset.findMany({
+    include: {
+      department: true,
+      owner: true,
+    },
+    orderBy: { name: "asc" },
+  });
+
   return (
     <PageSection
       title="Assets"
@@ -85,23 +61,27 @@ export default function AssetsPage() {
                 <td className="px-3 py-4 font-medium text-slate-900">
                   {asset.name}
                 </td>
-                <td className="px-3 py-4 text-slate-600">{asset.type}</td>
                 <td className="px-3 py-4 text-slate-600">
-                  {asset.ipAddress}
+                  {asset.assetType}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {asset.operatingSystem}
+                  {asset.ipAddress ?? "Not specified"}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {asset.department}
+                  {asset.operatingSystem ?? "Not specified"}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {asset.businessCriticality}
+                  {asset.department.name}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {asset.internetExposure}
+                  {formatEnum(asset.businessCriticality)}
                 </td>
-                <td className="px-3 py-4 text-slate-600">{asset.status}</td>
+                <td className="px-3 py-4 text-slate-600">
+                  {asset.internetExposure ? "Yes" : "No"}
+                </td>
+                <td className="px-3 py-4 text-slate-600">
+                  {formatEnum(asset.status)}
+                </td>
               </tr>
             ))}
           </tbody>

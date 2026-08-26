@@ -1,45 +1,28 @@
 import PageSection from "@/components/page-section";
+import prisma from "@/lib/prisma";
 
-const risks = [
-  {
-    risk: "Customer portal remote access exposure",
-    relatedAsset: "Customer Portal",
-    technicalSeverity: "Critical",
-    businessCriticality: "Critical",
-    internetExposure: "Yes",
-    organizationalRisk: "Critical",
-    status: "Open"
-  },
-  {
-    risk: "Finance database authentication weakness",
-    relatedAsset: "Finance Database",
-    technicalSeverity: "Critical",
-    businessCriticality: "Critical",
-    internetExposure: "No",
-    organizationalRisk: "High",
-    status: "Open"
-  },
-  {
-    risk: "HR file share outdated service",
-    relatedAsset: "HR File Share",
-    technicalSeverity: "High",
-    businessCriticality: "High",
-    internetExposure: "No",
-    organizationalRisk: "High",
-    status: "In Review"
-  },
-  {
-    risk: "Endpoint configuration weakness",
-    relatedAsset: "Workstation Pool A",
-    technicalSeverity: "Medium",
-    businessCriticality: "Medium",
-    internetExposure: "No",
-    organizationalRisk: "Medium",
-    status: "Accepted Risk"
-  }
-];
+export const dynamic = "force-dynamic";
 
-export default function RisksPage() {
+function formatEnum(value: string) {
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+export default async function RisksPage() {
+  const risks = await prisma.riskRecord.findMany({
+    include: {
+      vulnerability: {
+        include: {
+          affectedAsset: true,
+        },
+      },
+    },
+    orderBy: { organizationalRiskScore: "desc" },
+  });
+
   return (
     <PageSection
       title="Risks"
@@ -74,26 +57,28 @@ export default function RisksPage() {
           </thead>
           <tbody>
             {risks.map((risk) => (
-              <tr className="border-b border-slate-100" key={risk.risk}>
+              <tr className="border-b border-slate-100" key={risk.id}>
                 <td className="px-3 py-4 font-medium text-slate-900">
-                  {risk.risk}
+                  {risk.vulnerability.title}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {risk.relatedAsset}
+                  {risk.vulnerability.affectedAsset.name}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {risk.technicalSeverity}
+                  {formatEnum(risk.vulnerability.severity)}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {risk.businessCriticality}
+                  {formatEnum(risk.vulnerability.affectedAsset.businessCriticality)}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {risk.internetExposure}
+                  {risk.vulnerability.affectedAsset.internetExposure ? "Yes" : "No"}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {risk.organizationalRisk}
+                  {formatEnum(risk.organizationalRiskLevel)}
                 </td>
-                <td className="px-3 py-4 text-slate-600">{risk.status}</td>
+                <td className="px-3 py-4 text-slate-600">
+                  {formatEnum(risk.status)}
+                </td>
               </tr>
             ))}
           </tbody>
