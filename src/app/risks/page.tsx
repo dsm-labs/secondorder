@@ -1,3 +1,4 @@
+import Link from "next/link";
 import PageSection from "@/components/page-section";
 import prisma from "@/lib/prisma";
 
@@ -59,7 +60,12 @@ export default async function RisksPage() {
             {risks.map((risk) => (
               <tr className="border-b border-slate-100" key={risk.id}>
                 <td className="px-3 py-4 font-medium text-slate-900">
-                  {risk.vulnerability.title}
+                  <Link
+                    className="text-slate-950 underline-offset-4 hover:underline"
+                    href={`/risks/${risk.id}`}
+                  >
+                    {risk.vulnerability.title}
+                  </Link>
                 </td>
                 <td className="px-3 py-4 text-slate-600">
                   {risk.vulnerability.affectedAsset.name}

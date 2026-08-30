@@ -118,6 +118,16 @@ export default async function VulnerabilityDetailPage({
         >
           Edit Vulnerability
         </Link>
+        <Link
+          className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          href={
+            vulnerability.riskRecord
+              ? `/risks/${vulnerability.riskRecord.id}`
+              : `/vulnerabilities/${vulnerability.id}/assess-risk`
+          }
+        >
+          {vulnerability.riskRecord ? "View Risk" : "Assess Risk"}
+        </Link>
       </div>
 
       <dl className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -188,8 +198,39 @@ export default async function VulnerabilityDetailPage({
             {vulnerability.riskRecord.explanation ??
               "No risk explanation provided."}
           </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              href={`/risks/${vulnerability.riskRecord.id}`}
+            >
+              View Risk Detail
+            </Link>
+            <Link
+              className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              href={`/vulnerabilities/${vulnerability.id}/assess-risk`}
+            >
+              Reassess Risk
+            </Link>
+          </div>
         </div>
-      ) : null}
+      ) : (
+        <div className="mt-8 rounded-md border border-slate-200 bg-slate-50 p-4">
+          <h3 className="text-base font-semibold text-slate-950">
+            No Risk Record Yet
+          </h3>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Assess this vulnerability to calculate organizational risk from
+            CVSS, asset criticality, internet exposure, data sensitivity, and
+            business impact.
+          </p>
+          <Link
+            className="mt-4 inline-flex rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+            href={`/vulnerabilities/${vulnerability.id}/assess-risk`}
+          >
+            Assess Risk
+          </Link>
+        </div>
+      )}
     </PageSection>
   );
 }
