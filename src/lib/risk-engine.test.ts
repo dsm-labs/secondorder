@@ -9,6 +9,7 @@ import {
 import {
   calculateOrganizationalRisk,
   deriveOrganizationalRiskLevel,
+  evaluateRiskAssessmentFreshness,
 } from "./risk-engine";
 
 describe("risk engine", () => {
@@ -120,5 +121,81 @@ describe("risk engine", () => {
     });
 
     assert.ok(result.organizationalRiskScore <= 10);
+  });
+
+  it("factor contributions add up to the final score", () => {
+    const result = calculateOrganizationalRisk({
+      cvssScore: 8.8,
+      assetCriticality: BusinessCriticality.HIGH,
+      businessImpact: BusinessImpact.CRITICAL,
+      dataSensitivity: DataSensitivity.MEDIUM,
+      internetExposure: true,
+    });
+    const contributionTotal = result.factors.reduce(
+      (total, factor) => total + factor.weightedScore,
+      0
+    );
+
+    assert.equal(
+      Math.round(contributionTotal * 100) / 100,
+      result.organizationalRiskScore
+    );
+  });
+
+  it("marks a matching stored assessment as current", () => {
+    const freshness = evaluateRiskAssessmentFreshness({
+      cvssScore: 8,
+      assetCriticality: BusinessCriticality.HIGH,
+      businessImpact: BusinessImpact.HIGH,
+      dataSensitivity: DataSensitivity.MEDIUM,
+      internetExposure: true,
+      storedOrganizationalRiskScore: 7.43,
+      storedOrganizationalRiskLevel: OrganizationalRiskLevel.HIGH,
+    });
+
+    assert.equal(freshness.isCurrent, true);
+    assert.equal(freshness.label, "Assessment Current");
+  });
+
+  it("marks a mismatching stored score as needing reassessment", () => {
+    const freshness = evaluateRiskAssessmentFreshness({
+      cvssScore: 8,
+      assetCriticality: BusinessCriticality.HIGH,
+      businessImpact: BusinessImpact.HIGH,
+      dataSensitivity: DataSensitivity.MEDIUM,
+      internetExposure: true,
+      storedOrganizationalRiskScore: 5.25,
+      storedOrganizationalRiskLevel: OrganizationalRiskLevel.MEDIUM,
+    });
+
+    assert.equal(freshness.isCurrent, false);
+    assert.equal(freshness.label, "Needs Reassessment");
+    assert.equal(freshness.scoreDifference, 2.18);
+  });
+
+  it("shows different contribution breakdowns for the same CVSS with different business context", () => {
+    const lowerBusinessContext = calculateOrganizationalRisk({
+      cvssScore: 8,
+      assetCriticality: BusinessCriticality.LOW,
+      businessImpact: BusinessImpact.LOW,
+      dataSensitivity: DataSensitivity.LOW,
+      internetExposure: false,
+    });
+    const higherBusinessContext = calculateOrganizationalRisk({
+      cvssScore: 8,
+      assetCriticality: BusinessCriticality.CRITICAL,
+      businessImpact: BusinessImpact.CRITICAL,
+      dataSensitivity: DataSensitivity.CRITICAL,
+      internetExposure: true,
+    });
+
+    assert.notEqual(
+      lowerBusinessContext.organizationalRiskScore,
+      higherBusinessContext.organizationalRiskScore
+    );
+    assert.notDeepEqual(
+      lowerBusinessContext.factors,
+      higherBusinessContext.factors
+    );
   });
 });

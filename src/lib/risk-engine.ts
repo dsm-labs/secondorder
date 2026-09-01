@@ -37,6 +37,21 @@ export type RiskCalculationResult = {
   factors: RiskFactorContribution[];
 };
 
+export type RiskAssessmentFreshnessInput = RiskCalculationInput & {
+  storedOrganizationalRiskScore: number;
+  storedOrganizationalRiskLevel: OrganizationalRiskLevelValue;
+};
+
+export type RiskAssessmentFreshnessResult = {
+  isCurrent: boolean;
+  calculatedRisk: RiskCalculationResult;
+  scoreDifference: number;
+  scoreMatches: boolean;
+  levelMatches: boolean;
+  label: "Assessment Current" | "Needs Reassessment";
+  explanation: string;
+};
+
 function roundToTwo(value: number) {
   return Math.round(value * 100) / 100;
 }
@@ -107,35 +122,35 @@ export function calculateOrganizationalRisk(
       rawValue: input.cvssScore.toFixed(1),
       normalizedScore: input.cvssScore,
       weight: 0.35,
-      weightedScore: roundToTwo(input.cvssScore * 0.35),
+      weightedScore: input.cvssScore * 0.35,
     },
     {
       factor: "Asset Criticality",
       rawValue: formatEnum(input.assetCriticality),
       normalizedScore: assetCriticalityScore,
       weight: 0.25,
-      weightedScore: roundToTwo(assetCriticalityScore * 0.25),
+      weightedScore: assetCriticalityScore * 0.25,
     },
     {
       factor: "Business Impact",
       rawValue: formatEnum(input.businessImpact),
       normalizedScore: businessImpactScore,
       weight: 0.2,
-      weightedScore: roundToTwo(businessImpactScore * 0.2),
+      weightedScore: businessImpactScore * 0.2,
     },
     {
       factor: "Data Sensitivity",
       rawValue: formatEnum(input.dataSensitivity),
       normalizedScore: dataSensitivityScore,
       weight: 0.15,
-      weightedScore: roundToTwo(dataSensitivityScore * 0.15),
+      weightedScore: dataSensitivityScore * 0.15,
     },
     {
       factor: "Internet Exposure",
       rawValue: input.internetExposure ? "Internet-facing" : "Not internet-facing",
       normalizedScore: internetExposureScore,
       weight: 0.05,
-      weightedScore: roundToTwo(internetExposureScore * 0.05),
+      weightedScore: internetExposureScore * 0.05,
     },
   ];
 
@@ -163,5 +178,32 @@ export function calculateOrganizationalRisk(
       `${formatEnum(input.dataSensitivity)}, and the selected business impact is ` +
       `${formatEnum(input.businessImpact)}.`,
     factors,
+  };
+}
+
+export function evaluateRiskAssessmentFreshness(
+  input: RiskAssessmentFreshnessInput
+): RiskAssessmentFreshnessResult {
+  const calculatedRisk = calculateOrganizationalRisk(input);
+  const storedScore = roundToTwo(input.storedOrganizationalRiskScore);
+  const scoreDifference = roundToTwo(
+    Math.abs(storedScore - calculatedRisk.organizationalRiskScore)
+  );
+  const scoreMatches = scoreDifference <= 0.01;
+  const levelMatches =
+    input.storedOrganizationalRiskLevel ===
+    calculatedRisk.organizationalRiskLevel;
+  const isCurrent = scoreMatches && levelMatches;
+
+  return {
+    isCurrent,
+    calculatedRisk,
+    scoreDifference,
+    scoreMatches,
+    levelMatches,
+    label: isCurrent ? "Assessment Current" : "Needs Reassessment",
+    explanation: isCurrent
+      ? "The stored assessment matches the current risk-engine result for this vulnerability and asset context."
+      : "The stored assessment does not match the current risk-engine result. Technical or business context may have changed, or this may be a legacy seeded assessment.",
   };
 }
