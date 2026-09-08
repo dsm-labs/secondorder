@@ -123,6 +123,42 @@ describe("risk engine", () => {
     assert.ok(result.organizationalRiskScore <= 10);
   });
 
+  it("rounds a 9.185 calculated score to 9.19", () => {
+    const result = calculateOrganizationalRisk({
+      cvssScore: 9.1,
+      assetCriticality: BusinessCriticality.CRITICAL,
+      businessImpact: BusinessImpact.CRITICAL,
+      dataSensitivity: DataSensitivity.CRITICAL,
+      internetExposure: false,
+    });
+
+    assert.equal(result.organizationalRiskScore, 9.19);
+  });
+
+  it("rounds a 7.335 calculated score to 7.34", () => {
+    const result = calculateOrganizationalRisk({
+      cvssScore: 8.1,
+      assetCriticality: BusinessCriticality.HIGH,
+      businessImpact: BusinessImpact.HIGH,
+      dataSensitivity: DataSensitivity.HIGH,
+      internetExposure: false,
+    });
+
+    assert.equal(result.organizationalRiskScore, 7.34);
+  });
+
+  it("rounds a 5.065 calculated score to 5.07", () => {
+    const result = calculateOrganizationalRisk({
+      cvssScore: 5.9,
+      assetCriticality: BusinessCriticality.MEDIUM,
+      businessImpact: BusinessImpact.MEDIUM,
+      dataSensitivity: DataSensitivity.MEDIUM,
+      internetExposure: false,
+    });
+
+    assert.equal(result.organizationalRiskScore, 5.07);
+  });
+
   it("factor contributions add up to the final score", () => {
     const result = calculateOrganizationalRisk({
       cvssScore: 8.8,

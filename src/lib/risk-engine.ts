@@ -53,7 +53,7 @@ export type RiskAssessmentFreshnessResult = {
 };
 
 function roundToTwo(value: number) {
-  return Math.round(value * 100) / 100;
+  return Math.round((value + 1e-9) * 100) / 100;
 }
 
 function formatEnum(value: string) {

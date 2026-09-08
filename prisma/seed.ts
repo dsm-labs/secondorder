@@ -5,7 +5,6 @@ import {
   BusinessCriticality,
   BusinessImpact,
   DataSensitivity,
-  OrganizationalRiskLevel,
   RemediationPriority,
   RemediationStatus,
   RiskStatus,
@@ -13,6 +12,7 @@ import {
   VulnerabilitySeverity,
   VulnerabilityStatus,
 } from "../src/generated/prisma/client";
+import { calculateOrganizationalRisk } from "../src/lib/risk-engine";
 import prisma from "../src/lib/prisma";
 
 const ids = {
@@ -335,28 +335,28 @@ const vulnerabilities = [
 ] as const;
 
 const riskProfiles = [
-  [DataSensitivity.HIGH, BusinessImpact.CRITICAL, "96.50", OrganizationalRiskLevel.CRITICAL, RiskStatus.OPEN],
-  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, "94.25", OrganizationalRiskLevel.CRITICAL, RiskStatus.OPEN],
-  [DataSensitivity.HIGH, BusinessImpact.HIGH, "78.00", OrganizationalRiskLevel.HIGH, RiskStatus.IN_REVIEW],
-  [DataSensitivity.MEDIUM, BusinessImpact.MEDIUM, "48.75", OrganizationalRiskLevel.MEDIUM, RiskStatus.ACCEPTED_RISK],
-  [DataSensitivity.HIGH, BusinessImpact.HIGH, "69.50", OrganizationalRiskLevel.HIGH, RiskStatus.OPEN],
-  [DataSensitivity.MEDIUM, BusinessImpact.HIGH, "63.00", OrganizationalRiskLevel.HIGH, RiskStatus.OPEN],
-  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, "91.00", OrganizationalRiskLevel.CRITICAL, RiskStatus.OPEN],
-  [DataSensitivity.HIGH, BusinessImpact.HIGH, "74.25", OrganizationalRiskLevel.HIGH, RiskStatus.IN_REVIEW],
-  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, "88.75", OrganizationalRiskLevel.CRITICAL, RiskStatus.OPEN],
-  [DataSensitivity.HIGH, BusinessImpact.HIGH, "67.00", OrganizationalRiskLevel.HIGH, RiskStatus.OPEN],
-  [DataSensitivity.HIGH, BusinessImpact.HIGH, "72.40", OrganizationalRiskLevel.HIGH, RiskStatus.IN_REVIEW],
-  [DataSensitivity.MEDIUM, BusinessImpact.HIGH, "76.90", OrganizationalRiskLevel.HIGH, RiskStatus.OPEN],
-  [DataSensitivity.LOW, BusinessImpact.HIGH, "55.50", OrganizationalRiskLevel.MEDIUM, RiskStatus.OPEN],
-  [DataSensitivity.HIGH, BusinessImpact.HIGH, "79.20", OrganizationalRiskLevel.HIGH, RiskStatus.OPEN],
-  [DataSensitivity.MEDIUM, BusinessImpact.MEDIUM, "52.80", OrganizationalRiskLevel.MEDIUM, RiskStatus.IN_REVIEW],
-  [DataSensitivity.HIGH, BusinessImpact.CRITICAL, "84.60", OrganizationalRiskLevel.CRITICAL, RiskStatus.OPEN],
-  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, "89.10", OrganizationalRiskLevel.CRITICAL, RiskStatus.OPEN],
-  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, "82.75", OrganizationalRiskLevel.CRITICAL, RiskStatus.OPEN],
-  [DataSensitivity.MEDIUM, BusinessImpact.HIGH, "46.10", OrganizationalRiskLevel.MEDIUM, RiskStatus.RESOLVED],
-  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, "86.20", OrganizationalRiskLevel.CRITICAL, RiskStatus.OPEN],
-  [DataSensitivity.HIGH, BusinessImpact.MEDIUM, "39.50", OrganizationalRiskLevel.MEDIUM, RiskStatus.ACCEPTED_RISK],
-  [DataSensitivity.MEDIUM, BusinessImpact.MEDIUM, "50.25", OrganizationalRiskLevel.MEDIUM, RiskStatus.OPEN],
+  [DataSensitivity.HIGH, BusinessImpact.CRITICAL, RiskStatus.OPEN],
+  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, RiskStatus.OPEN],
+  [DataSensitivity.HIGH, BusinessImpact.HIGH, RiskStatus.IN_REVIEW],
+  [DataSensitivity.MEDIUM, BusinessImpact.MEDIUM, RiskStatus.ACCEPTED_RISK],
+  [DataSensitivity.HIGH, BusinessImpact.HIGH, RiskStatus.OPEN],
+  [DataSensitivity.MEDIUM, BusinessImpact.HIGH, RiskStatus.OPEN],
+  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, RiskStatus.OPEN],
+  [DataSensitivity.HIGH, BusinessImpact.HIGH, RiskStatus.IN_REVIEW],
+  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, RiskStatus.OPEN],
+  [DataSensitivity.HIGH, BusinessImpact.HIGH, RiskStatus.OPEN],
+  [DataSensitivity.HIGH, BusinessImpact.HIGH, RiskStatus.IN_REVIEW],
+  [DataSensitivity.MEDIUM, BusinessImpact.HIGH, RiskStatus.OPEN],
+  [DataSensitivity.LOW, BusinessImpact.HIGH, RiskStatus.OPEN],
+  [DataSensitivity.HIGH, BusinessImpact.HIGH, RiskStatus.OPEN],
+  [DataSensitivity.MEDIUM, BusinessImpact.MEDIUM, RiskStatus.IN_REVIEW],
+  [DataSensitivity.HIGH, BusinessImpact.CRITICAL, RiskStatus.OPEN],
+  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, RiskStatus.OPEN],
+  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, RiskStatus.OPEN],
+  [DataSensitivity.MEDIUM, BusinessImpact.HIGH, RiskStatus.RESOLVED],
+  [DataSensitivity.CRITICAL, BusinessImpact.CRITICAL, RiskStatus.OPEN],
+  [DataSensitivity.HIGH, BusinessImpact.MEDIUM, RiskStatus.ACCEPTED_RISK],
+  [DataSensitivity.MEDIUM, BusinessImpact.MEDIUM, RiskStatus.OPEN],
 ] as const;
 
 const remediationTasks = [
@@ -467,16 +467,30 @@ async function main() {
 
   for (const [index, vulnerability] of vulnerabilities.entries()) {
     const number = vulnerability[0];
-    const [dataSensitivity, businessImpact, organizationalRiskScore, organizationalRiskLevel, status] = riskProfiles[index];
+    const [, , cvssScore, , affectedAssetId] = vulnerability;
+    const [dataSensitivity, businessImpact, status] = riskProfiles[index];
+    const affectedAsset = assets.find((asset) => asset.id === affectedAssetId);
+
+    if (!affectedAsset) {
+      throw new Error(`Missing seeded asset for CVE-DEMO-${number}.`);
+    }
+
+    const calculatedRisk = calculateOrganizationalRisk({
+      cvssScore: Number(cvssScore),
+      assetCriticality: affectedAsset.businessCriticality,
+      businessImpact,
+      dataSensitivity,
+      internetExposure: affectedAsset.internetExposure,
+    });
 
     await prisma.riskRecord.upsert({
       where: { vulnerabilityId: vulnerabilityId(number) },
       update: {
         dataSensitivity,
         businessImpact,
-        organizationalRiskScore,
-        organizationalRiskLevel,
-        explanation: `Demo risk record showing how technical severity combines with business context for CVE-DEMO-${number}.`,
+        organizationalRiskScore: calculatedRisk.organizationalRiskScore,
+        organizationalRiskLevel: calculatedRisk.organizationalRiskLevel,
+        explanation: calculatedRisk.explanation,
         status,
       },
       create: {
@@ -484,9 +498,9 @@ async function main() {
         vulnerabilityId: vulnerabilityId(number),
         dataSensitivity,
         businessImpact,
-        organizationalRiskScore,
-        organizationalRiskLevel,
-        explanation: `Demo risk record showing how technical severity combines with business context for CVE-DEMO-${number}.`,
+        organizationalRiskScore: calculatedRisk.organizationalRiskScore,
+        organizationalRiskLevel: calculatedRisk.organizationalRiskLevel,
+        explanation: calculatedRisk.explanation,
         status,
       },
     });
