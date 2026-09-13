@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PageSection from "@/components/page-section";
 import OverdueIndicator from "@/components/remediation/overdue-indicator";
+import RemediationOperationsOverview from "@/components/remediation/remediation-operations-overview";
 import {
   Prisma,
   RemediationPriority,
@@ -9,8 +10,11 @@ import {
   type RemediationStatus as RemediationStatusValue,
 } from "@/generated/prisma/client";
 import {
+  aggregateRemediationWorkload,
   isRemediationTaskOverdue,
+  rankCriticalUnresolvedTasks,
   sortRemediationTasksForWorkflow,
+  summarizeRemediationOperations,
 } from "@/lib/remediation";
 import prisma from "@/lib/prisma";
 
@@ -214,7 +218,7 @@ export default async function RemediationPage({
   const where: Prisma.RemediationTaskWhereInput =
     conditions.length > 0 ? { AND: conditions } : {};
 
-  const [queriedTasks, users, assets] = await Promise.all([
+  const [queriedTasks, users, assets, operationalTasks] = await Promise.all([
     prisma.remediationTask.findMany({
       where,
       include: {
@@ -232,18 +236,106 @@ export default async function RemediationPage({
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
+    prisma.remediationTask.findMany({
+      select: {
+        id: true,
+        title: true,
+        priority: true,
+        dueDate: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        assignedUser: {
+          select: {
+            id: true,
+            name: true,
+            department: { select: { name: true } },
+          },
+        },
+        relatedAsset: {
+          select: { id: true, name: true },
+        },
+        relatedVulnerability: {
+          select: {
+            id: true,
+            identifier: true,
+            title: true,
+            cvssScore: true,
+            severity: true,
+            riskRecord: {
+              select: {
+                organizationalRiskScore: true,
+                organizationalRiskLevel: true,
+              },
+            },
+          },
+        },
+      },
+    }),
   ]);
   const remediationTasks =
     sort === "workflow"
       ? sortRemediationTasksForWorkflow(queriedTasks, currentTime)
       : queriedTasks;
+  const operationalTaskData = operationalTasks.map((task) => ({
+    ...task,
+    relatedVulnerability: {
+      ...task.relatedVulnerability,
+      cvssScore: Number(task.relatedVulnerability.cvssScore.toString()),
+      riskRecord: task.relatedVulnerability.riskRecord
+        ? {
+            ...task.relatedVulnerability.riskRecord,
+            organizationalRiskScore: Number(
+              task.relatedVulnerability.riskRecord.organizationalRiskScore.toString()
+            ),
+          }
+        : null,
+    },
+  }));
+  const summary = summarizeRemediationOperations(
+    operationalTaskData,
+    currentTime
+  );
+  const workload = aggregateRemediationWorkload(
+    operationalTaskData,
+    currentTime
+  );
+  const criticalItems = rankCriticalUnresolvedTasks(operationalTaskData)
+    .slice(0, 5)
+    .map((task) => ({
+      assignedUserName: task.assignedUser.name,
+      cvssScore: task.relatedVulnerability.cvssScore,
+      dueDate: task.dueDate,
+      id: task.id,
+      isOverdue: isRemediationTaskOverdue(task, currentTime),
+      relatedAsset: task.relatedAsset,
+      relatedVulnerability: {
+        identifier: task.relatedVulnerability.identifier,
+        title: task.relatedVulnerability.title,
+      },
+      riskRecord: task.relatedVulnerability.riskRecord,
+      status: task.status,
+    }));
 
   return (
     <PageSection
       title="Remediation"
       subtitle="Assign, prioritize, and track remediation work through completion."
     >
-      <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-6">
+      <RemediationOperationsOverview
+        approximateAverageRemediationTimeMs={
+          summary.approximateAverageRemediationTimeMs
+        }
+        criticalItems={criticalItems}
+        criticalUnresolvedVulnerabilityCount={
+          summary.criticalUnresolvedVulnerabilityCount
+        }
+        openRemediationCount={summary.openRemediationCount}
+        overdueTaskCount={summary.overdueTaskCount}
+        workload={workload}
+      />
+
+      <div className="mb-6 mt-8 flex flex-col gap-4 border-b border-slate-200 pb-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-600">
             Showing {remediationTasks.length} task
