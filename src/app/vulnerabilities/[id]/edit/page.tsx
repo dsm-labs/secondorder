@@ -6,6 +6,7 @@ import {
   VulnerabilityStatus,
 } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ function formatDateInput(value: Date) {
 export default async function EditVulnerabilityPage({
   params,
 }: EditVulnerabilityPageProps) {
+  await requireUser();
   const { id } = await params;
   const [vulnerability, assets] = await Promise.all([
     prisma.vulnerability.findUnique({ where: { id } }),

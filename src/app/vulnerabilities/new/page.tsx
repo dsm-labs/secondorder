@@ -5,10 +5,12 @@ import {
   VulnerabilityStatus,
 } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewVulnerabilityPage() {
+  await requireUser();
   const assets = await prisma.asset.findMany({
     orderBy: { name: "asc" },
     select: { id: true, name: true },

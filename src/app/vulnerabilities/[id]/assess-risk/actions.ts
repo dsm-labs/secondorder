@@ -13,6 +13,7 @@ import {
 } from "@/generated/prisma/client";
 import { calculateOrganizationalRisk } from "@/lib/risk-engine";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export type RiskAssessmentFormState = {
   error: string;
@@ -48,6 +49,7 @@ export async function saveRiskAssessment(
   _previousState: RiskAssessmentFormState,
   formData: FormData
 ): Promise<RiskAssessmentFormState> {
+  await requireUser();
   const dataSensitivity = getText(formData, "dataSensitivity");
   const businessImpact = getText(formData, "businessImpact");
   const status = getText(formData, "status");

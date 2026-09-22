@@ -12,6 +12,7 @@ import {
   VulnerabilitySeverity,
   VulnerabilityStatus,
 } from "../src/generated/prisma/client";
+import { hash, truncates } from "bcryptjs";
 import { calculateOrganizationalRisk } from "../src/lib/risk-engine";
 import prisma from "../src/lib/prisma";
 
@@ -409,6 +410,14 @@ function auditEventId(number: string) {
 }
 
 async function main() {
+  const demoPassword = process.env.DEMO_USER_PASSWORD;
+
+  if (!demoPassword || demoPassword.length < 12 || truncates(demoPassword)) {
+    throw new Error(
+      "Set DEMO_USER_PASSWORD to at least 12 characters (and at most 72 UTF-8 bytes) before seeding."
+    );
+  }
+
   for (const department of departments) {
     await prisma.department.upsert({
       where: { id: department.id },
@@ -418,10 +427,12 @@ async function main() {
   }
 
   for (const user of users) {
+    const passwordHash = await hash(demoPassword, 12);
+
     await prisma.user.upsert({
       where: { id: user.id },
-      update: user,
-      create: user,
+      update: { ...user, passwordHash },
+      create: { ...user, passwordHash },
     });
   }
 

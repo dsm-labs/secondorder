@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageSection from "@/components/page-section";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ function formatDate(value: Date) {
 export default async function VulnerabilityDetailPage({
   params,
 }: VulnerabilityDetailPageProps) {
+  await requireUser();
   const { id } = await params;
   const vulnerability = await prisma.vulnerability.findUnique({
     where: { id },

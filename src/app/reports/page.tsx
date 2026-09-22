@@ -1,4 +1,5 @@
 import PageSection from "@/components/page-section";
+import { requireUser } from "@/lib/auth-user";
 
 const reportSections = [
   {
@@ -23,7 +24,8 @@ const reportSections = [
   }
 ];
 
-export default function ReportsPage() {
+export default async function ReportsPage() {
+  await requireUser();
   return (
     <PageSection
       title="Reports"

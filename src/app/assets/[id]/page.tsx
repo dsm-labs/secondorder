@@ -4,6 +4,7 @@ import ArchiveAssetForm from "@/components/assets/archive-asset-form";
 import PageSection from "@/components/page-section";
 import { AssetStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ function formatDate(value: Date) {
 }
 
 export default async function AssetDetailPage({ params }: AssetDetailPageProps) {
+  await requireUser();
   const { id } = await params;
   const asset = await prisma.asset.findUnique({
     where: { id },

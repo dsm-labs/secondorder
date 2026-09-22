@@ -4,6 +4,7 @@ import PageSection from "@/components/page-section";
 import OverdueIndicator from "@/components/remediation/overdue-indicator";
 import { isRemediationTaskOverdue } from "@/lib/remediation";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ function formatTimestamp(value: Date) {
 export default async function RemediationTaskDetailPage({
   params,
 }: RemediationTaskDetailPageProps) {
+  await requireUser();
   const { id } = await params;
   const task = await prisma.remediationTask.findUnique({
     where: { id },

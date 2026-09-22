@@ -5,6 +5,7 @@ import RiskFactorBreakdown from "@/components/risks/risk-factor-breakdown";
 import RiskFreshnessIndicator from "@/components/risks/risk-freshness-indicator";
 import { evaluateRiskAssessmentFreshness } from "@/lib/risk-engine";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,7 @@ function formatDate(value: Date) {
 }
 
 export default async function RiskDetailPage({ params }: RiskDetailPageProps) {
+  await requireUser();
   const { id } = await params;
   const risk = await prisma.riskRecord.findUnique({
     where: { id },

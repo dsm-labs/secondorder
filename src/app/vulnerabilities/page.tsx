@@ -8,6 +8,7 @@ import {
   type VulnerabilityStatus as VulnerabilityStatusValue,
 } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +104,7 @@ function getVulnerabilityOrderBy(
 export default async function VulnerabilitiesPage({
   searchParams,
 }: VulnerabilitiesPageProps) {
+  await requireUser();
   const params = await searchParams;
   const query = getSingleParam(params.q)?.trim() ?? "";
   const severity = getSingleParam(params.severity);

@@ -8,6 +8,7 @@ import {
   type BusinessCriticality as BusinessCriticalityValue,
 } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +80,7 @@ function getAssetOrderBy(
 }
 
 export default async function AssetsPage({ searchParams }: AssetsPageProps) {
+  await requireUser();
   const params = await searchParams;
   const query = getSingleParam(params.q)?.trim() ?? "";
   const departmentId = getSingleParam(params.departmentId) ?? "";

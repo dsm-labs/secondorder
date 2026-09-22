@@ -17,6 +17,7 @@ import {
   summarizeRemediationOperations,
 } from "@/lib/remediation";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export const dynamic = "force-dynamic";
 
@@ -132,6 +133,7 @@ function getRemediationOrderBy(
 export default async function RemediationPage({
   searchParams,
 }: RemediationPageProps) {
+  await requireUser();
   const params = await searchParams;
   const query = getSingleParam(params.q)?.trim() ?? "";
   const status = getSingleParam(params.status);

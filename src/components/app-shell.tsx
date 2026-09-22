@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
 const navigationItems = [
@@ -18,6 +19,19 @@ export default function AppShell({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  if (pathname === "/login") {
+    return <>{children}</>;
+  }
+
+  const roleLabel = session?.user?.role
+    ? {
+        ANALYST: "Analyst",
+        IT_ADMIN: "IT Admin",
+        SECURITY_MANAGER: "Security Manager",
+        EXECUTIVE: "Executive",
+      }[session.user.role]
+    : null;
   const currentPageTitle =
     navigationItems.find((item) =>
       item.href === "/"
@@ -72,7 +86,21 @@ export default function AppShell({
                   {currentPageTitle}
                 </h1>
               </div>
-              <p className="text-sm text-slate-500">SecondOrder</p>
+              <div className="flex items-center gap-4 text-sm text-slate-600">
+                {session?.user ? (
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium text-slate-800">{session.user.name}</span>
+                    {roleLabel ? <span className="block text-xs">{roleLabel}</span> : null}
+                  </span>
+                ) : null}
+                <button
+                  className="shrink-0 text-sm font-medium text-slate-700 hover:text-slate-950"
+                  onClick={() => signOut({ redirectTo: "/login" })}
+                  type="button"
+                >
+                  Sign out
+                </button>
+              </div>
             </div>
           </header>
 

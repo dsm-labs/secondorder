@@ -9,6 +9,7 @@ import {
   type RemediationStatus as RemediationStatusValue,
 } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export type RemediationTaskFormState = {
   error: string;
@@ -206,6 +207,7 @@ export async function createRemediationTask(
   _previousState: RemediationTaskFormState,
   formData: FormData
 ): Promise<RemediationTaskFormState> {
+  await requireUser();
   const input = readRemediationTaskInput(formData);
 
   if ("error" in input) {
@@ -236,6 +238,7 @@ export async function updateRemediationTask(
   _previousState: RemediationTaskFormState,
   formData: FormData
 ): Promise<RemediationTaskFormState> {
+  await requireUser();
   if (!UUID_PATTERN.test(remediationTaskId)) {
     return { error: "This remediation task is not valid." };
   }

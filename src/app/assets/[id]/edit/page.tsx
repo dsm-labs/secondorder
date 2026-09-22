@@ -3,6 +3,7 @@ import { updateAsset } from "@/app/assets/actions";
 import AssetForm from "@/components/assets/asset-form";
 import PageSection from "@/components/page-section";
 import prisma from "@/lib/prisma";
+import { requireUser } from "@/lib/auth-user";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ type EditAssetPageProps = {
 };
 
 export default async function EditAssetPage({ params }: EditAssetPageProps) {
+  await requireUser();
   const { id } = await params;
   const [asset, departments, users] = await Promise.all([
     prisma.asset.findUnique({ where: { id } }),
