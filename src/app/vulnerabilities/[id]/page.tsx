@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageSection from "@/components/page-section";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { hasPermission, Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,12 @@ function formatDate(value: Date) {
 export default async function VulnerabilityDetailPage({
   params,
 }: VulnerabilityDetailPageProps) {
-  await requireUser();
+  const user = await requirePermission(Permission.VIEW_VULNERABILITIES);
+  const canManageVulnerabilities = hasPermission(
+    user.role,
+    Permission.MANAGE_VULNERABILITIES
+  );
+  const canAssessRisks = hasPermission(user.role, Permission.ASSESS_RISKS);
   const { id } = await params;
   const vulnerability = await prisma.vulnerability.findUnique({
     where: { id },
@@ -114,22 +120,29 @@ export default async function VulnerabilityDetailPage({
         >
           Back to Vulnerabilities
         </Link>
-        <Link
-          className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-          href={`/vulnerabilities/${vulnerability.id}/edit`}
-        >
-          Edit Vulnerability
-        </Link>
-        <Link
-          className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-          href={
-            vulnerability.riskRecord
-              ? `/risks/${vulnerability.riskRecord.id}`
-              : `/vulnerabilities/${vulnerability.id}/assess-risk`
-          }
-        >
-          {vulnerability.riskRecord ? "View Risk" : "Assess Risk"}
-        </Link>
+        {canManageVulnerabilities ? (
+          <Link
+            className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+            href={`/vulnerabilities/${vulnerability.id}/edit`}
+          >
+            Edit Vulnerability
+          </Link>
+        ) : null}
+        {vulnerability.riskRecord ? (
+          <Link
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            href={`/risks/${vulnerability.riskRecord.id}`}
+          >
+            View Risk
+          </Link>
+        ) : canAssessRisks ? (
+          <Link
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            href={`/vulnerabilities/${vulnerability.id}/assess-risk`}
+          >
+            Assess Risk
+          </Link>
+        ) : null}
       </div>
 
       <dl className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -207,12 +220,14 @@ export default async function VulnerabilityDetailPage({
             >
               View Risk Detail
             </Link>
-            <Link
-              className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-              href={`/vulnerabilities/${vulnerability.id}/assess-risk`}
-            >
-              Reassess Risk
-            </Link>
+            {canAssessRisks ? (
+              <Link
+                className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                href={`/vulnerabilities/${vulnerability.id}/assess-risk`}
+              >
+                Reassess Risk
+              </Link>
+            ) : null}
           </div>
         </div>
       ) : (
@@ -221,16 +236,18 @@ export default async function VulnerabilityDetailPage({
             No Risk Record Yet
           </h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Assess this vulnerability to calculate organizational risk from
-            CVSS, asset criticality, internet exposure, data sensitivity, and
-            business impact.
+            {canAssessRisks
+              ? "Assess this vulnerability to calculate organizational risk from technical and business context."
+              : "No organizational risk assessment is currently linked to this vulnerability."}
           </p>
-          <Link
-            className="mt-4 inline-flex rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-            href={`/vulnerabilities/${vulnerability.id}/assess-risk`}
-          >
-            Assess Risk
-          </Link>
+          {canAssessRisks ? (
+            <Link
+              className="mt-4 inline-flex rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              href={`/vulnerabilities/${vulnerability.id}/assess-risk`}
+            >
+              Assess Risk
+            </Link>
+          ) : null}
         </div>
       )}
     </PageSection>

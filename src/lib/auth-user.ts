@@ -1,9 +1,10 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 
-export async function getCurrentUser() {
+export const getCurrentUser = cache(async () => {
   const session = await auth();
   const id = session?.user?.id;
 
@@ -16,7 +17,7 @@ export async function getCurrentUser() {
     where: { id },
     select: { id: true, name: true, email: true, role: true },
   });
-}
+});
 
 export async function requireUser() {
   const user = await getCurrentUser();

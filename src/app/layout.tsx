@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { SessionProvider } from "next-auth/react";
 import AppShell from "@/components/app-shell";
+import { getCurrentUser } from "@/lib/auth-user";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,17 +8,17 @@ export const metadata: Metadata = {
   description: "Enterprise cyber risk and vulnerability management platform"
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const currentUser = await getCurrentUser();
+
   return (
     <html lang="en">
       <body>
-        <SessionProvider>
-          <AppShell>{children}</AppShell>
-        </SessionProvider>
+        <AppShell currentUser={currentUser}>{children}</AppShell>
       </body>
     </html>
   );

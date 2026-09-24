@@ -17,7 +17,8 @@ import {
   summarizeRemediationOperations,
 } from "@/lib/remediation";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { hasPermission, Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -133,7 +134,11 @@ function getRemediationOrderBy(
 export default async function RemediationPage({
   searchParams,
 }: RemediationPageProps) {
-  await requireUser();
+  const user = await requirePermission(Permission.VIEW_REMEDIATION);
+  const canManageRemediation = hasPermission(
+    user.role,
+    Permission.MANAGE_REMEDIATION
+  );
   const params = await searchParams;
   const query = getSingleParam(params.q)?.trim() ?? "";
   const status = getSingleParam(params.status);
@@ -343,12 +348,14 @@ export default async function RemediationPage({
             Showing {remediationTasks.length} task
             {remediationTasks.length === 1 ? "" : "s"}.
           </p>
-          <Link
-            className="inline-flex w-fit rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-            href="/remediation/new"
-          >
-            Add Remediation Task
-          </Link>
+          {canManageRemediation ? (
+            <Link
+              className="inline-flex w-fit rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              href="/remediation/new"
+            >
+              Add Remediation Task
+            </Link>
+          ) : null}
         </div>
 
         <form className="grid gap-3 lg:grid-cols-4" method="get">

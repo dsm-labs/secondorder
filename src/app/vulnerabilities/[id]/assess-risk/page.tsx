@@ -8,7 +8,8 @@ import {
 } from "@/generated/prisma/client";
 import { calculateOrganizationalRisk } from "@/lib/risk-engine";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ function formatEnum(value: string) {
 }
 
 export default async function AssessRiskPage({ params }: AssessRiskPageProps) {
-  await requireUser();
+  await requirePermission(Permission.ASSESS_RISKS);
   const { id } = await params;
   const vulnerability = await prisma.vulnerability.findUnique({
     where: { id },

@@ -1,6 +1,7 @@
 import PageSection from "@/components/page-section";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { Permission } from "@/lib/permissions";
 import {
   OrganizationalRiskLevel,
   RemediationStatus,
@@ -10,7 +11,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  await requireUser();
+  await requirePermission(Permission.VIEW_DASHBOARD);
   const [
     totalAssets,
     openVulnerabilities,

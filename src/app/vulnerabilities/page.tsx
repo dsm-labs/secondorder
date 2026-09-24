@@ -8,7 +8,8 @@ import {
   type VulnerabilityStatus as VulnerabilityStatusValue,
 } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { hasPermission, Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -104,7 +105,11 @@ function getVulnerabilityOrderBy(
 export default async function VulnerabilitiesPage({
   searchParams,
 }: VulnerabilitiesPageProps) {
-  await requireUser();
+  const user = await requirePermission(Permission.VIEW_VULNERABILITIES);
+  const canManageVulnerabilities = hasPermission(
+    user.role,
+    Permission.MANAGE_VULNERABILITIES
+  );
   const params = await searchParams;
   const query = getSingleParam(params.q)?.trim() ?? "";
   const severity = getSingleParam(params.severity);
@@ -163,12 +168,14 @@ export default async function VulnerabilitiesPage({
             Showing {vulnerabilities.length} vulnerabilit
             {vulnerabilities.length === 1 ? "y" : "ies"}.
           </p>
-          <Link
-            className="inline-flex w-fit rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-            href="/vulnerabilities/new"
-          >
-            Add Vulnerability
-          </Link>
+          {canManageVulnerabilities ? (
+            <Link
+              className="inline-flex w-fit rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              href="/vulnerabilities/new"
+            >
+              Add Vulnerability
+            </Link>
+          ) : null}
         </div>
 
         <form className="grid gap-3 lg:grid-cols-5" method="get">

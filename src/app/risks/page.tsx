@@ -10,7 +10,8 @@ import {
 } from "@/generated/prisma/client";
 import { evaluateRiskAssessmentFreshness } from "@/lib/risk-engine";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -109,7 +110,7 @@ function getRiskOrderBy(
 }
 
 export default async function RisksPage({ searchParams }: RisksPageProps) {
-  await requireUser();
+  await requirePermission(Permission.VIEW_RISKS);
   const params = await searchParams;
   const query = getSingleParam(params.q)?.trim() ?? "";
   const riskLevel = getSingleParam(params.riskLevel);

@@ -5,7 +5,8 @@ import RiskFactorBreakdown from "@/components/risks/risk-factor-breakdown";
 import RiskFreshnessIndicator from "@/components/risks/risk-freshness-indicator";
 import { evaluateRiskAssessmentFreshness } from "@/lib/risk-engine";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { hasPermission, Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,12 @@ function formatDate(value: Date) {
 }
 
 export default async function RiskDetailPage({ params }: RiskDetailPageProps) {
-  await requireUser();
+  const user = await requirePermission(Permission.VIEW_RISKS);
+  const canAssessRisks = hasPermission(user.role, Permission.ASSESS_RISKS);
+  const canViewVulnerabilities = hasPermission(
+    user.role,
+    Permission.VIEW_VULNERABILITIES
+  );
   const { id } = await params;
   const risk = await prisma.riskRecord.findUnique({
     where: { id },
@@ -140,18 +146,22 @@ export default async function RiskDetailPage({ params }: RiskDetailPageProps) {
         >
           Back to Risks
         </Link>
-        <Link
-          className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-          href={`/vulnerabilities/${risk.vulnerability.id}`}
-        >
-          View Vulnerability
-        </Link>
-        <Link
-          className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-          href={`/vulnerabilities/${risk.vulnerability.id}/assess-risk`}
-        >
-          Reassess Risk
-        </Link>
+        {canViewVulnerabilities ? (
+          <Link
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            href={`/vulnerabilities/${risk.vulnerability.id}`}
+          >
+            View Vulnerability
+          </Link>
+        ) : null}
+        {canAssessRisks ? (
+          <Link
+            className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+            href={`/vulnerabilities/${risk.vulnerability.id}/assess-risk`}
+          >
+            Reassess Risk
+          </Link>
+        ) : null}
       </div>
 
       <div className="mt-6 rounded-md border border-slate-200 bg-slate-50 p-4">

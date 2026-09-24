@@ -8,7 +8,8 @@ import {
   type BusinessCriticality as BusinessCriticalityValue,
 } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { hasPermission, Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -80,7 +81,8 @@ function getAssetOrderBy(
 }
 
 export default async function AssetsPage({ searchParams }: AssetsPageProps) {
-  await requireUser();
+  const user = await requirePermission(Permission.VIEW_ASSETS);
+  const canManageAssets = hasPermission(user.role, Permission.MANAGE_ASSETS);
   const params = await searchParams;
   const query = getSingleParam(params.q)?.trim() ?? "";
   const departmentId = getSingleParam(params.departmentId) ?? "";
@@ -134,12 +136,14 @@ export default async function AssetsPage({ searchParams }: AssetsPageProps) {
           <p className="text-sm text-slate-600">
             Showing {assets.length} asset{assets.length === 1 ? "" : "s"}.
           </p>
-          <Link
-            className="inline-flex w-fit rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-            href="/assets/new"
-          >
-            Add Asset
-          </Link>
+          {canManageAssets ? (
+            <Link
+              className="inline-flex w-fit rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              href="/assets/new"
+            >
+              Add Asset
+            </Link>
+          ) : null}
         </div>
 
         <form className="grid gap-3 lg:grid-cols-5" method="get">

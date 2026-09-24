@@ -10,7 +10,8 @@ import {
   type VulnerabilityStatus as VulnerabilityStatusValue,
 } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { Permission } from "@/lib/permissions";
 
 export type VulnerabilityFormState = {
   error: string;
@@ -149,7 +150,7 @@ export async function createVulnerability(
   _previousState: VulnerabilityFormState,
   formData: FormData
 ): Promise<VulnerabilityFormState> {
-  await requireUser();
+  await requirePermission(Permission.MANAGE_VULNERABILITIES);
   const input = await readVulnerabilityInput(formData);
 
   if ("error" in input) {
@@ -199,7 +200,7 @@ export async function updateVulnerability(
   _previousState: VulnerabilityFormState,
   formData: FormData
 ): Promise<VulnerabilityFormState> {
-  await requireUser();
+  await requirePermission(Permission.MANAGE_VULNERABILITIES);
   const input = await readVulnerabilityInput(formData);
 
   if ("error" in input) {

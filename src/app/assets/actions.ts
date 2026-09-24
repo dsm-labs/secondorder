@@ -9,7 +9,8 @@ import {
   type BusinessCriticality as BusinessCriticalityValue,
 } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { Permission } from "@/lib/permissions";
 
 type AssetInput = {
   name: string;
@@ -99,7 +100,7 @@ async function readAssetInput(formData: FormData): Promise<AssetInput> {
 }
 
 export async function createAsset(formData: FormData) {
-  await requireUser();
+  await requirePermission(Permission.MANAGE_ASSETS);
   const data = await readAssetInput(formData);
 
   const asset = await prisma.asset.create({ data });
@@ -109,7 +110,7 @@ export async function createAsset(formData: FormData) {
 }
 
 export async function updateAsset(assetId: string, formData: FormData) {
-  await requireUser();
+  await requirePermission(Permission.MANAGE_ASSETS);
   const data = await readAssetInput(formData);
 
   await prisma.asset.update({
@@ -123,7 +124,7 @@ export async function updateAsset(assetId: string, formData: FormData) {
 }
 
 export async function archiveAsset(assetId: string, formData: FormData) {
-  await requireUser();
+  await requirePermission(Permission.MANAGE_ASSETS);
   const confirmed = formData.get("confirmArchive") === "on";
 
   if (!confirmed) {

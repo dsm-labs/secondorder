@@ -4,7 +4,8 @@ import ArchiveAssetForm from "@/components/assets/archive-asset-form";
 import PageSection from "@/components/page-section";
 import { AssetStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { hasPermission, Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,8 @@ function formatDate(value: Date) {
 }
 
 export default async function AssetDetailPage({ params }: AssetDetailPageProps) {
-  await requireUser();
+  const user = await requirePermission(Permission.VIEW_ASSETS);
+  const canManageAssets = hasPermission(user.role, Permission.MANAGE_ASSETS);
   const { id } = await params;
   const asset = await prisma.asset.findUnique({
     where: { id },
@@ -78,12 +80,14 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
         >
           Back to Assets
         </Link>
-        <Link
-          className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-          href={`/assets/${asset.id}/edit`}
-        >
-          Edit Asset
-        </Link>
+        {canManageAssets ? (
+          <Link
+            className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+            href={`/assets/${asset.id}/edit`}
+          >
+            Edit Asset
+          </Link>
+        ) : null}
       </div>
 
       <dl className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -157,7 +161,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
         </div>
       </div>
 
-      {asset.status !== AssetStatus.ARCHIVED ? (
+      {canManageAssets && asset.status !== AssetStatus.ARCHIVED ? (
         <ArchiveAssetForm assetId={asset.id} />
       ) : null}
     </PageSection>

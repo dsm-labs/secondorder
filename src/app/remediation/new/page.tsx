@@ -5,12 +5,13 @@ import {
   RemediationStatus,
 } from "@/generated/prisma/client";
 import { getRemediationFormOptions } from "@/lib/remediation-form-options";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewRemediationTaskPage() {
-  await requireUser();
+  await requirePermission(Permission.MANAGE_REMEDIATION);
   const { users, vulnerabilities } = await getRemediationFormOptions();
 
   return (

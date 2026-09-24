@@ -7,7 +7,8 @@ import {
 } from "@/generated/prisma/client";
 import { getRemediationFormOptions } from "@/lib/remediation-form-options";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ function formatDateInput(value: Date) {
 export default async function EditRemediationTaskPage({
   params,
 }: EditRemediationTaskPageProps) {
-  await requireUser();
+  await requirePermission(Permission.MANAGE_REMEDIATION);
   const { id } = await params;
   const [task, options] = await Promise.all([
     prisma.remediationTask.findUnique({ where: { id } }),

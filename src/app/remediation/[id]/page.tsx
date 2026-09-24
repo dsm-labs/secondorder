@@ -4,7 +4,8 @@ import PageSection from "@/components/page-section";
 import OverdueIndicator from "@/components/remediation/overdue-indicator";
 import { isRemediationTaskOverdue } from "@/lib/remediation";
 import prisma from "@/lib/prisma";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { hasPermission, Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,11 @@ function formatTimestamp(value: Date) {
 export default async function RemediationTaskDetailPage({
   params,
 }: RemediationTaskDetailPageProps) {
-  await requireUser();
+  const user = await requirePermission(Permission.VIEW_REMEDIATION);
+  const canManageRemediation = hasPermission(
+    user.role,
+    Permission.MANAGE_REMEDIATION
+  );
   const { id } = await params;
   const task = await prisma.remediationTask.findUnique({
     where: { id },
@@ -133,12 +138,14 @@ export default async function RemediationTaskDetailPage({
           >
             Back to Remediation
           </Link>
-          <Link
-            className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-            href={`/remediation/${task.id}/edit`}
-          >
-            Edit Task
-          </Link>
+          {canManageRemediation ? (
+            <Link
+              className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              href={`/remediation/${task.id}/edit`}
+            >
+              Edit Task
+            </Link>
+          ) : null}
         </div>
         <OverdueIndicator isOverdue={isOverdue} />
       </div>

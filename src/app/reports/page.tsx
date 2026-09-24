@@ -1,5 +1,6 @@
 import PageSection from "@/components/page-section";
-import { requireUser } from "@/lib/auth-user";
+import { requirePermission } from "@/lib/authorization";
+import { Permission } from "@/lib/permissions";
 
 const reportSections = [
   {
@@ -25,7 +26,7 @@ const reportSections = [
 ];
 
 export default async function ReportsPage() {
-  await requireUser();
+  await requirePermission(Permission.VIEW_REPORTS);
   return (
     <PageSection
       title="Reports"
