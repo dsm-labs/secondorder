@@ -7,6 +7,7 @@ import {
 } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
+import { formatDateInputValue } from "@/lib/date-format";
 import { Permission } from "@/lib/permissions";
 import { isUuid } from "@/lib/identifiers";
 
@@ -15,10 +16,6 @@ export const dynamic = "force-dynamic";
 type EditVulnerabilityPageProps = {
   params: Promise<{ id: string }>;
 };
-
-function formatDateInput(value: Date) {
-  return value.toISOString().slice(0, 10);
-}
 
 export default async function EditVulnerabilityPage({
   params,
@@ -61,7 +58,7 @@ export default async function EditVulnerabilityPage({
           cvssScore: vulnerability.cvssScore.toString(),
           severity: vulnerability.severity,
           affectedAssetId: vulnerability.affectedAssetId,
-          detectionDate: formatDateInput(vulnerability.detectionDate),
+          detectionDate: formatDateInputValue(vulnerability.detectionDate),
           status: vulnerability.status,
         }}
       />

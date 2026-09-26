@@ -5,6 +5,7 @@ import type {
   OrganizationalRiskLevel,
   RemediationStatus,
 } from "@/generated/prisma/client";
+import { formatDisplayDate } from "@/lib/date-format";
 import type { RemediationWorkload } from "@/lib/remediation";
 
 type CriticalRemediationItem = {
@@ -36,14 +37,6 @@ type RemediationOperationsOverviewProps = {
   overdueTaskCount: number;
   workload: RemediationWorkload[];
 };
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(date);
-}
 
 function formatAverageDuration(durationMs: number | null) {
   if (durationMs === null) {
@@ -183,7 +176,7 @@ export default function RemediationOperationsOverview({
                     {item.assignedUserName}
                   </td>
                   <td className="px-3 py-4 text-slate-600">
-                    {formatDate(item.dueDate)}
+                    {formatDisplayDate(item.dueDate)}
                   </td>
                   <td className="px-3 py-4 text-slate-600">
                     <StatusBadge value={item.status} />

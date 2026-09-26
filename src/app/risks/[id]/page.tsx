@@ -4,6 +4,7 @@ import PageSection from "@/components/page-section";
 import RiskFactorBreakdown from "@/components/risks/risk-factor-breakdown";
 import RiskFreshnessIndicator from "@/components/risks/risk-freshness-indicator";
 import StatusBadge from "@/components/ui/status-badge";
+import { formatDisplayDate } from "@/lib/date-format";
 import { evaluateRiskAssessmentFreshness } from "@/lib/risk-engine";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
@@ -22,14 +23,6 @@ function formatEnum(value: string) {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
-}
-
-function formatDate(value: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(value);
 }
 
 export default async function RiskDetailPage({ params }: RiskDetailPageProps) {
@@ -99,7 +92,7 @@ export default async function RiskDetailPage({ params }: RiskDetailPageProps) {
     },
     {
       label: "Last Updated",
-      value: formatDate(risk.updatedAt),
+      value: formatDisplayDate(risk.updatedAt),
     },
   ];
   const vulnerabilityDetails = [

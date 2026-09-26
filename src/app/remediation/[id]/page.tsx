@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import PageSection from "@/components/page-section";
 import OverdueIndicator from "@/components/remediation/overdue-indicator";
 import StatusBadge from "@/components/ui/status-badge";
+import {
+  formatDisplayDate,
+  formatDisplayTimestamp,
+} from "@/lib/date-format";
 import { isRemediationTaskOverdue } from "@/lib/remediation";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
@@ -14,25 +18,6 @@ export const dynamic = "force-dynamic";
 type RemediationTaskDetailPageProps = {
   params: Promise<{ id: string }>;
 };
-
-function formatDate(value: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(value);
-}
-
-function formatTimestamp(value: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZoneName: "short",
-  }).format(value);
-}
 
 export default async function RemediationTaskDetailPage({
   params,
@@ -74,10 +59,10 @@ export default async function RemediationTaskDetailPage({
       value: `${task.assignedUser.name} (${task.assignedUser.department.name})`,
     },
     { label: "Priority", value: <StatusBadge value={task.priority} /> },
-    { label: "Due Date", value: formatDate(task.dueDate) },
+    { label: "Due Date", value: formatDisplayDate(task.dueDate) },
     { label: "Status", value: <StatusBadge value={task.status} /> },
-    { label: "Created", value: formatTimestamp(task.createdAt) },
-    { label: "Last Updated", value: formatTimestamp(task.updatedAt) },
+    { label: "Created", value: formatDisplayTimestamp(task.createdAt) },
+    { label: "Last Updated", value: formatDisplayTimestamp(task.updatedAt) },
   ];
   const vulnerabilityDetails = [
     {

@@ -3,6 +3,10 @@ import OverdueIndicator from "@/components/remediation/overdue-indicator";
 import StatusBadge from "@/components/ui/status-badge";
 import type { UserRole } from "@/generated/prisma/client";
 import type { DashboardMetricKey } from "@/lib/dashboard";
+import {
+  formatDisplayDate,
+  formatDisplayTimestamp,
+} from "@/lib/date-format";
 import { hasPermission, Permission } from "@/lib/permissions";
 import {
   getReportRoleView,
@@ -81,24 +85,6 @@ function formatEnum(value: string) {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(date);
-}
-
-function formatTimestamp(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
 }
 
 function ReportSection({
@@ -630,7 +616,7 @@ function CriticalUnresolvedWork({
                     {item.assignedUserName}
                   </td>
                   <td className="px-3 py-3 text-slate-600">
-                    {formatDate(item.dueDate)}
+                    {formatDisplayDate(item.dueDate)}
                   </td>
                   <td className="px-3 py-3 text-slate-600">
                     <StatusBadge value={item.status} />
@@ -734,7 +720,7 @@ export default function ReportsWorkspace({
           {roleNarratives[role]}
         </p>
         <p className="mt-2 text-xs text-slate-500">
-          Prepared {formatTimestamp(generatedAt)}. This report reflects current
+          Prepared {formatDisplayTimestamp(generatedAt)}. This report reflects current
           records and does not represent a historical trend.
         </p>
       </div>

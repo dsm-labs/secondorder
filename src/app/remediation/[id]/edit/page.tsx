@@ -8,6 +8,7 @@ import {
 import { getRemediationFormOptions } from "@/lib/remediation-form-options";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
+import { formatDateInputValue } from "@/lib/date-format";
 import { Permission } from "@/lib/permissions";
 import { isUuid } from "@/lib/identifiers";
 
@@ -16,10 +17,6 @@ export const dynamic = "force-dynamic";
 type EditRemediationTaskPageProps = {
   params: Promise<{ id: string }>;
 };
-
-function formatDateInput(value: Date) {
-  return value.toISOString().slice(0, 10);
-}
 
 export default async function EditRemediationTaskPage({
   params,
@@ -57,7 +54,7 @@ export default async function EditRemediationTaskPage({
           assignedUserId: task.assignedUserId,
           relatedVulnerabilityId: task.relatedVulnerabilityId,
           priority: task.priority,
-          dueDate: formatDateInput(task.dueDate),
+          dueDate: formatDateInputValue(task.dueDate),
           status: task.status,
           resolutionNotes: task.resolutionNotes ?? "",
         }}

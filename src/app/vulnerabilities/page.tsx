@@ -11,6 +11,7 @@ import {
 } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
+import { formatNumericDisplayDate } from "@/lib/date-format";
 import { hasPermission, Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
@@ -29,14 +30,6 @@ const sortOptions = [
   { label: "Identifier A-Z", value: "identifier_asc" },
   { label: "Title A-Z", value: "title_asc" },
 ];
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
-}
 
 function formatEnum(value: string) {
   return value
@@ -330,7 +323,7 @@ export default async function VulnerabilitiesPage({
                   {item.affectedAsset.name}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {formatDate(item.detectionDate)}
+                  {formatNumericDisplayDate(item.detectionDate)}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
                   <StatusBadge value={item.status} />

@@ -10,6 +10,7 @@ import {
   type AuditEntityType as AuditEntityTypeValue,
 } from "@/generated/prisma/client";
 import { requirePermission } from "@/lib/authorization";
+import { formatDisplayTimestamp } from "@/lib/date-format";
 import { Permission } from "@/lib/permissions";
 import prisma from "@/lib/prisma";
 
@@ -46,16 +47,6 @@ function formatEnum(value: string) {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
-}
-
-function formatTimestamp(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
 }
 
 export default async function AuditPage({ searchParams }: AuditPageProps) {
@@ -206,7 +197,9 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
           <tbody>
             {events.map((event) => (
               <tr className="border-b border-slate-100 text-slate-700" key={event.id}>
-                <td className="whitespace-nowrap px-3 py-3">{formatTimestamp(event.createdAt)}</td>
+                <td className="whitespace-nowrap px-3 py-3">
+                  {formatDisplayTimestamp(event.createdAt)}
+                </td>
                 <td className="px-3 py-3">
                   <span className="block font-medium text-slate-900">{event.user.name}</span>
                   <span className="block text-xs text-slate-500">{event.user.email}</span>

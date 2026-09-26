@@ -7,6 +7,7 @@ import StatusBadge from "@/components/ui/status-badge";
 import { AssetStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
+import { formatDisplayDate } from "@/lib/date-format";
 import { hasPermission, Permission } from "@/lib/permissions";
 import { isUuid } from "@/lib/identifiers";
 
@@ -15,14 +16,6 @@ export const dynamic = "force-dynamic";
 type AssetDetailPageProps = {
   params: Promise<{ id: string }>;
 };
-
-function formatDate(value: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(value);
-}
 
 export default async function AssetDetailPage({ params }: AssetDetailPageProps) {
   const user = await requirePermission(Permission.VIEW_ASSETS);
@@ -154,7 +147,7 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
                     <StatusBadge value={vulnerability.severity} />
                   </td>
                   <td className="px-3 py-4 text-slate-600">
-                    {formatDate(vulnerability.detectionDate)}
+                    {formatDisplayDate(vulnerability.detectionDate)}
                   </td>
                   <td className="px-3 py-4 text-slate-600">
                     <StatusBadge value={vulnerability.status} />

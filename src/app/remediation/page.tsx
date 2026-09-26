@@ -20,6 +20,7 @@ import {
 } from "@/lib/remediation";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
+import { formatDisplayDate } from "@/lib/date-format";
 import { hasPermission, Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
@@ -46,14 +47,6 @@ const sortOptions = [
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(date);
-}
 
 function formatEnum(value: string) {
   return value
@@ -564,7 +557,7 @@ export default async function RemediationPage({
                     <StatusBadge value={task.priority} />
                   </td>
                   <td className="px-3 py-4 text-slate-600">
-                    {formatDate(task.dueDate)}
+                    {formatDisplayDate(task.dueDate)}
                   </td>
                   <td className="px-3 py-4 text-slate-600">
                     <StatusBadge value={task.status} />

@@ -4,6 +4,7 @@ import PageSection from "@/components/page-section";
 import StatusBadge from "@/components/ui/status-badge";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
+import { formatDisplayDate } from "@/lib/date-format";
 import { hasPermission, Permission } from "@/lib/permissions";
 import { isUuid } from "@/lib/identifiers";
 
@@ -19,14 +20,6 @@ function formatEnum(value: string) {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
-}
-
-function formatDate(value: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(value);
 }
 
 export default async function VulnerabilityDetailPage({
@@ -73,7 +66,7 @@ export default async function VulnerabilityDetailPage({
     },
     {
       label: "Detection Date",
-      value: formatDate(vulnerability.detectionDate),
+      value: formatDisplayDate(vulnerability.detectionDate),
     },
     { label: "Status", value: <StatusBadge value={vulnerability.status} /> },
   ];
