@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import PageSection from "@/components/page-section";
 import RiskFactorBreakdown from "@/components/risks/risk-factor-breakdown";
 import RiskFreshnessIndicator from "@/components/risks/risk-freshness-indicator";
+import StatusBadge from "@/components/ui/status-badge";
 import { evaluateRiskAssessmentFreshness } from "@/lib/risk-engine";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
 import { hasPermission, Permission } from "@/lib/permissions";
+import { isUuid } from "@/lib/identifiers";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +40,11 @@ export default async function RiskDetailPage({ params }: RiskDetailPageProps) {
     Permission.VIEW_VULNERABILITIES
   );
   const { id } = await params;
+
+  if (!isUuid(id)) {
+    notFound();
+  }
+
   const risk = await prisma.riskRecord.findUnique({
     where: { id },
     include: {
@@ -75,16 +82,20 @@ export default async function RiskDetailPage({ params }: RiskDetailPageProps) {
     },
     {
       label: "Stored Risk Level",
-      value: formatEnum(risk.organizationalRiskLevel),
+      value: <StatusBadge value={risk.organizationalRiskLevel} />,
     },
-    { label: "Risk Status", value: formatEnum(risk.status) },
+    { label: "Risk Status", value: <StatusBadge value={risk.status} /> },
     {
       label: "Current Engine Score",
       value: freshness.calculatedRisk.organizationalRiskScore.toFixed(2),
     },
     {
       label: "Current Engine Level",
-      value: formatEnum(freshness.calculatedRisk.organizationalRiskLevel),
+      value: (
+        <StatusBadge
+          value={freshness.calculatedRisk.organizationalRiskLevel}
+        />
+      ),
     },
     {
       label: "Last Updated",
@@ -98,13 +109,16 @@ export default async function RiskDetailPage({ params }: RiskDetailPageProps) {
     },
     {
       label: "CVSS / Severity",
-      value: `${risk.vulnerability.cvssScore.toString()} / ${formatEnum(
-        risk.vulnerability.severity
-      )}`,
+      value: (
+        <span className="flex flex-wrap items-center gap-2">
+          <span>{risk.vulnerability.cvssScore.toString()}</span>
+          <StatusBadge value={risk.vulnerability.severity} />
+        </span>
+      ),
     },
     {
       label: "Status",
-      value: formatEnum(risk.vulnerability.status),
+      value: <StatusBadge value={risk.vulnerability.status} />,
     },
   ];
   const assetDetails = [
@@ -118,11 +132,33 @@ export default async function RiskDetailPage({ params }: RiskDetailPageProps) {
     },
     {
       label: "Business Criticality",
-      value: formatEnum(risk.vulnerability.affectedAsset.businessCriticality),
+      value: (
+        <StatusBadge
+          value={risk.vulnerability.affectedAsset.businessCriticality}
+        />
+      ),
     },
     {
       label: "Internet Exposure",
-      value: risk.vulnerability.affectedAsset.internetExposure ? "Yes" : "No",
+      value: (
+        <StatusBadge
+          label={
+            risk.vulnerability.affectedAsset.internetExposure
+              ? "Internet-Facing"
+              : "Internal"
+          }
+          tone={
+            risk.vulnerability.affectedAsset.internetExposure
+              ? "warning"
+              : "neutral"
+          }
+          value={
+            risk.vulnerability.affectedAsset.internetExposure
+              ? "EXPOSED"
+              : "INTERNAL"
+          }
+        />
+      ),
     },
     {
       label: "Data Sensitivity",

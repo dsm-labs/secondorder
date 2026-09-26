@@ -5,6 +5,7 @@ import PageSection from "@/components/page-section";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
 import { Permission } from "@/lib/permissions";
+import { isUuid } from "@/lib/identifiers";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,11 @@ type EditAssetPageProps = {
 export default async function EditAssetPage({ params }: EditAssetPageProps) {
   await requirePermission(Permission.MANAGE_ASSETS);
   const { id } = await params;
+
+  if (!isUuid(id)) {
+    notFound();
+  }
+
   const [asset, departments, users] = await Promise.all([
     prisma.asset.findUnique({ where: { id } }),
     prisma.department.findMany({ orderBy: { name: "asc" } }),

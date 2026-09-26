@@ -1,5 +1,6 @@
 import Link from "next/link";
 import OverdueIndicator from "@/components/remediation/overdue-indicator";
+import StatusBadge from "@/components/ui/status-badge";
 import type { UserRole } from "@/generated/prisma/client";
 import type { DashboardMetricKey } from "@/lib/dashboard";
 import { hasPermission, Permission } from "@/lib/permissions";
@@ -141,7 +142,14 @@ function DistributionRow({
           {count} {percentage === null ? "" : `(${percentage}%)`}
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-sm bg-slate-200">
+      <div
+        aria-label={`${label}: ${count}`}
+        aria-valuemax={100}
+        aria-valuemin={0}
+        aria-valuenow={percentage ?? 0}
+        className="h-2 overflow-hidden rounded-sm bg-slate-200"
+        role="progressbar"
+      >
         <div
           className={`h-full rounded-sm ${barClassName}`}
           style={{ width: `${percentage ?? 0}%` }}
@@ -395,12 +403,20 @@ function HighestRiskVulnerabilities({
                     )}
                   </td>
                   <td className="px-3 py-3 text-slate-600">
-                    {item.cvssScore.toFixed(1)} / {formatEnum(item.severity)}
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span>{item.cvssScore.toFixed(1)}</span>
+                      <StatusBadge value={item.severity} />
+                    </span>
                   </td>
                   <td className="px-3 py-3 text-slate-600">
                     {item.riskScore === null || item.riskLevel === null
                       ? "Not assessed"
-                      : `${item.riskScore.toFixed(2)} / ${formatEnum(item.riskLevel)}`}
+                      : (
+                          <span className="flex flex-wrap items-center gap-2">
+                            <span>{item.riskScore.toFixed(2)}</span>
+                            <StatusBadge value={item.riskLevel} />
+                          </span>
+                        )}
                   </td>
                 </tr>
               );
@@ -596,9 +612,19 @@ function CriticalUnresolvedWork({
                     {item.relatedAsset.name}
                   </td>
                   <td className="px-3 py-3 text-slate-600">
-                    {item.riskRecord
-                      ? `${item.riskRecord.organizationalRiskScore.toFixed(2)} / ${formatEnum(item.riskRecord.organizationalRiskLevel)}`
-                      : `CVSS ${item.cvssScore.toFixed(1)} / ${formatEnum(item.relatedVulnerability.severity)}`}
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span>
+                        {item.riskRecord
+                          ? item.riskRecord.organizationalRiskScore.toFixed(2)
+                          : `CVSS ${item.cvssScore.toFixed(1)}`}
+                      </span>
+                      <StatusBadge
+                        value={
+                          item.riskRecord?.organizationalRiskLevel ??
+                          item.relatedVulnerability.severity
+                        }
+                      />
+                    </span>
                   </td>
                   <td className="px-3 py-3 text-slate-600">
                     {item.assignedUserName}
@@ -607,7 +633,7 @@ function CriticalUnresolvedWork({
                     {formatDate(item.dueDate)}
                   </td>
                   <td className="px-3 py-3 text-slate-600">
-                    {formatEnum(item.status)}
+                    <StatusBadge value={item.status} />
                   </td>
                   <td className="px-3 py-3 text-slate-600">
                     <OverdueIndicator isOverdue={item.isOverdue} />
@@ -708,7 +734,8 @@ export default function ReportsWorkspace({
           {roleNarratives[role]}
         </p>
         <p className="mt-2 text-xs text-slate-500">
-          Prepared {formatTimestamp(generatedAt)}. This report reflects current records and does not represent a historical trend.
+          Prepared {formatTimestamp(generatedAt)}. This report reflects current
+          records and does not represent a historical trend.
         </p>
       </div>
 
@@ -728,7 +755,7 @@ export default function ReportsWorkspace({
             </>
           );
           const className =
-            "rounded-md border border-slate-200 bg-slate-50 p-4 transition";
+            "h-full min-h-36 rounded-md border border-slate-200 bg-slate-50 p-4 transition";
 
           return canNavigate ? (
             <Link

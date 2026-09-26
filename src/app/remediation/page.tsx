@@ -2,6 +2,8 @@ import Link from "next/link";
 import PageSection from "@/components/page-section";
 import OverdueIndicator from "@/components/remediation/overdue-indicator";
 import RemediationOperationsOverview from "@/components/remediation/remediation-operations-overview";
+import EmptyState from "@/components/ui/empty-state";
+import StatusBadge from "@/components/ui/status-badge";
 import {
   Prisma,
   RemediationPriority,
@@ -153,6 +155,14 @@ export default async function RemediationPage({
     : "";
   const overdue = getSingleParam(params.overdue) ?? "all";
   const sort = getSingleParam(params.sort) ?? "workflow";
+  const hasFilters = Boolean(
+    query ||
+      status ||
+      priority ||
+      assignedUserId ||
+      relatedAssetId ||
+      overdue !== "all"
+  );
   const currentTime = new Date();
   const conditions: Prisma.RemediationTaskWhereInput[] = [];
 
@@ -358,7 +368,7 @@ export default async function RemediationPage({
           ) : null}
         </div>
 
-        <form className="grid gap-3 lg:grid-cols-4" method="get">
+        <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" method="get">
           <label className="block text-sm font-medium text-slate-700 lg:col-span-2">
             Search
             <input
@@ -470,7 +480,7 @@ export default async function RemediationPage({
             </select>
           </label>
 
-          <div className="flex items-end gap-3 lg:col-span-2">
+          <div className="flex flex-wrap items-end gap-3 lg:col-span-2">
             <button
               className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
               type="submit"
@@ -551,13 +561,13 @@ export default async function RemediationPage({
                     {task.assignedUser.name}
                   </td>
                   <td className="px-3 py-4 text-slate-600">
-                    {formatEnum(task.priority)}
+                    <StatusBadge value={task.priority} />
                   </td>
                   <td className="px-3 py-4 text-slate-600">
                     {formatDate(task.dueDate)}
                   </td>
                   <td className="px-3 py-4 text-slate-600">
-                    {formatEnum(task.status)}
+                    <StatusBadge value={task.status} />
                   </td>
                   <td className="px-3 py-4 text-slate-600">
                     <OverdueIndicator isOverdue={taskIsOverdue} />
@@ -568,9 +578,33 @@ export default async function RemediationPage({
           </tbody>
         </table>
         {remediationTasks.length === 0 ? (
-          <p className="py-6 text-sm text-slate-500">
-            No remediation tasks match the current search and filters.
-          </p>
+          <EmptyState
+            action={
+              hasFilters ? (
+                <Link
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  href="/remediation"
+                >
+                  Clear Filters
+                </Link>
+              ) : canManageRemediation ? (
+                <Link
+                  className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                  href="/remediation/new"
+                >
+                  Add Remediation Task
+                </Link>
+              ) : undefined
+            }
+            description={
+              hasFilters
+                ? "Try broadening your search or clearing one or more filters."
+                : "No remediation tasks are currently recorded."
+            }
+            title={
+              hasFilters ? "No matching remediation tasks" : "No remediation tasks yet"
+            }
+          />
         ) : null}
       </div>
     </PageSection>

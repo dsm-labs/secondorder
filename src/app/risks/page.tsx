@@ -1,6 +1,8 @@
 import Link from "next/link";
 import PageSection from "@/components/page-section";
 import RiskFreshnessIndicator from "@/components/risks/risk-freshness-indicator";
+import EmptyState from "@/components/ui/empty-state";
+import StatusBadge from "@/components/ui/status-badge";
 import {
   OrganizationalRiskLevel,
   Prisma,
@@ -11,7 +13,7 @@ import {
 import { evaluateRiskAssessmentFreshness } from "@/lib/risk-engine";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
-import { Permission } from "@/lib/permissions";
+import { hasPermission, Permission } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
@@ -110,7 +112,8 @@ function getRiskOrderBy(
 }
 
 export default async function RisksPage({ searchParams }: RisksPageProps) {
-  await requirePermission(Permission.VIEW_RISKS);
+  const user = await requirePermission(Permission.VIEW_RISKS);
+  const canAssessRisks = hasPermission(user.role, Permission.ASSESS_RISKS);
   const params = await searchParams;
   const query = getSingleParam(params.q)?.trim() ?? "";
   const riskLevel = getSingleParam(params.riskLevel);
@@ -118,6 +121,9 @@ export default async function RisksPage({ searchParams }: RisksPageProps) {
   const departmentId = getSingleParam(params.departmentId) ?? "";
   const internetExposure = getSingleParam(params.internetExposure) ?? "";
   const sort = getSingleParam(params.sort) ?? "score_desc";
+  const hasFilters = Boolean(
+    query || riskLevel || status || departmentId || internetExposure
+  );
   const conditions: Prisma.RiskRecordWhereInput[] = [];
 
   if (query) {
@@ -204,7 +210,7 @@ export default async function RisksPage({ searchParams }: RisksPageProps) {
           the current sort order.
         </p>
 
-        <form className="grid gap-3 lg:grid-cols-5" method="get">
+        <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" method="get">
           <label className="block text-sm font-medium text-slate-700 lg:col-span-2">
             Search
             <input
@@ -292,7 +298,7 @@ export default async function RisksPage({ searchParams }: RisksPageProps) {
             </select>
           </label>
 
-          <div className="flex items-end gap-3">
+          <div className="flex flex-wrap items-end gap-3">
             <button
               className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
               type="submit"
@@ -387,7 +393,7 @@ export default async function RisksPage({ searchParams }: RisksPageProps) {
                   </td>
                   <td className="px-3 py-4 text-slate-600">
                     {risk.vulnerability.cvssScore.toString()} /{" "}
-                    {formatEnum(risk.vulnerability.severity)}
+                    <StatusBadge value={risk.vulnerability.severity} />
                   </td>
                   <td className="px-3 py-4 text-slate-600">
                     {formatEnum(
@@ -409,10 +415,10 @@ export default async function RisksPage({ searchParams }: RisksPageProps) {
                     {Number(risk.organizationalRiskScore.toString()).toFixed(2)}
                   </td>
                   <td className="px-3 py-4 text-slate-600">
-                    {formatEnum(risk.organizationalRiskLevel)}
+                    <StatusBadge value={risk.organizationalRiskLevel} />
                   </td>
                   <td className="px-3 py-4 text-slate-600">
-                    {formatEnum(risk.status)}
+                    <StatusBadge value={risk.status} />
                   </td>
                   <td className="px-3 py-4 text-slate-600">
                     <RiskFreshnessIndicator
@@ -426,9 +432,31 @@ export default async function RisksPage({ searchParams }: RisksPageProps) {
           </tbody>
         </table>
         {risks.length === 0 ? (
-          <p className="py-6 text-sm text-slate-500">
-            No risks match the current search and filters.
-          </p>
+          <EmptyState
+            action={
+              hasFilters ? (
+                <Link
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  href="/risks"
+                >
+                  Clear Filters
+                </Link>
+              ) : canAssessRisks ? (
+                <Link
+                  className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                  href="/vulnerabilities"
+                >
+                  Review Vulnerabilities
+                </Link>
+              ) : undefined
+            }
+            description={
+              hasFilters
+                ? "Try broadening your search or clearing one or more filters."
+                : "No organizational risk assessments are currently recorded."
+            }
+            title={hasFilters ? "No matching risks" : "No risks yet"}
+          />
         ) : null}
       </div>
     </PageSection>

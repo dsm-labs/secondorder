@@ -1,4 +1,5 @@
 import { archiveAsset } from "@/app/assets/actions";
+import SubmitButton from "@/components/ui/submit-button";
 
 type ArchiveAssetFormProps = {
   assetId: string;
@@ -21,16 +22,17 @@ export default function ArchiveAssetForm({ assetId }: ArchiveAssetFormProps) {
         <input
           className="mt-1 h-4 w-4 rounded border-slate-300"
           name="confirmArchive"
+          required
           type="checkbox"
         />
         I understand this will mark the asset as archived.
       </label>
-      <button
-        className="mt-4 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-800 transition hover:bg-white"
-        type="submit"
+      <SubmitButton
+        className="mt-4 rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-800 transition hover:bg-red-50 disabled:opacity-60"
+        pendingLabel="Archiving..."
       >
         Archive Asset
-      </button>
+      </SubmitButton>
     </form>
   );
 }

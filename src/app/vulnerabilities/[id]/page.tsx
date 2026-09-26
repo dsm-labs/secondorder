@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageSection from "@/components/page-section";
+import StatusBadge from "@/components/ui/status-badge";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
 import { hasPermission, Permission } from "@/lib/permissions";
+import { isUuid } from "@/lib/identifiers";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +39,11 @@ export default async function VulnerabilityDetailPage({
   );
   const canAssessRisks = hasPermission(user.role, Permission.ASSESS_RISKS);
   const { id } = await params;
+
+  if (!isUuid(id)) {
+    notFound();
+  }
+
   const vulnerability = await prisma.vulnerability.findUnique({
     where: { id },
     include: {
@@ -56,7 +63,10 @@ export default async function VulnerabilityDetailPage({
   const vulnerabilityDetails = [
     { label: "Identifier", value: vulnerability.identifier },
     { label: "CVSS Score", value: vulnerability.cvssScore.toString() },
-    { label: "Technical Severity", value: formatEnum(vulnerability.severity) },
+    {
+      label: "Technical Severity",
+      value: <StatusBadge value={vulnerability.severity} />,
+    },
     {
       label: "Affected Asset",
       value: vulnerability.affectedAsset.name,
@@ -65,7 +75,7 @@ export default async function VulnerabilityDetailPage({
       label: "Detection Date",
       value: formatDate(vulnerability.detectionDate),
     },
-    { label: "Status", value: formatEnum(vulnerability.status) },
+    { label: "Status", value: <StatusBadge value={vulnerability.status} /> },
   ];
 
   const assetDetails = [
@@ -75,11 +85,31 @@ export default async function VulnerabilityDetailPage({
     },
     {
       label: "Business Criticality",
-      value: formatEnum(vulnerability.affectedAsset.businessCriticality),
+      value: (
+        <StatusBadge value={vulnerability.affectedAsset.businessCriticality} />
+      ),
     },
     {
       label: "Internet Exposure",
-      value: vulnerability.affectedAsset.internetExposure ? "Yes" : "No",
+      value: (
+        <StatusBadge
+          label={
+            vulnerability.affectedAsset.internetExposure
+              ? "Internet-Facing"
+              : "Internal"
+          }
+          tone={
+            vulnerability.affectedAsset.internetExposure
+              ? "warning"
+              : "neutral"
+          }
+          value={
+            vulnerability.affectedAsset.internetExposure
+              ? "EXPOSED"
+              : "INTERNAL"
+          }
+        />
+      ),
     },
   ];
 
@@ -87,7 +117,11 @@ export default async function VulnerabilityDetailPage({
     ? [
         {
           label: "Organizational Risk",
-          value: formatEnum(vulnerability.riskRecord.organizationalRiskLevel),
+          value: (
+            <StatusBadge
+              value={vulnerability.riskRecord.organizationalRiskLevel}
+            />
+          ),
         },
         {
           label: "Risk Score",
@@ -103,7 +137,7 @@ export default async function VulnerabilityDetailPage({
         },
         {
           label: "Risk Status",
-          value: formatEnum(vulnerability.riskRecord.status),
+          value: <StatusBadge value={vulnerability.riskRecord.status} />,
         },
       ]
     : [];

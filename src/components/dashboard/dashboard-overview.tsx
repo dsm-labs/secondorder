@@ -109,7 +109,14 @@ function BarRow({
         <span className="font-medium text-slate-700">{label}</span>
         <span className="shrink-0 text-slate-500">{value}</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-sm bg-slate-200">
+      <div
+        aria-label={`${label}: ${value}`}
+        aria-valuemax={100}
+        aria-valuemin={0}
+        aria-valuenow={Math.round(safePercent)}
+        className="h-2 overflow-hidden rounded-sm bg-slate-200"
+        role="progressbar"
+      >
         <div
           className={`h-full rounded-sm ${barClassName}`}
           style={{ width: `${safePercent}%` }}
@@ -155,7 +162,14 @@ function RiskByDepartment({
                 Peak {department.highestScore.toFixed(2)}
               </p>
             </div>
-            <div className="h-2 overflow-hidden rounded-sm bg-slate-200">
+            <div
+              aria-label={`${department.departmentName} peak risk score`}
+              aria-valuemax={10}
+              aria-valuemin={0}
+              aria-valuenow={department.highestScore}
+              className="h-2 overflow-hidden rounded-sm bg-slate-200"
+              role="progressbar"
+            >
               <div
                 className="h-full rounded-sm bg-rose-700"
                 style={{ width: `${Math.min(100, department.highestScore * 10)}%` }}
@@ -313,7 +327,7 @@ function HighestRiskAssets({
               <div className="min-w-0 flex-1">
                 {href ? (
                   <Link
-                    className="font-medium text-slate-950 underline-offset-4 hover:underline"
+                    className="break-words font-medium text-slate-950 underline-offset-4 hover:underline"
                     href={href}
                   >
                     {asset.assetName}
@@ -536,7 +550,7 @@ export default function DashboardOverview({
             </>
           );
           const className =
-            "rounded-md border border-slate-200 bg-slate-50 p-4 transition";
+            "h-full min-h-36 rounded-md border border-slate-200 bg-slate-50 p-4 transition";
 
           return canNavigate ? (
             <Link

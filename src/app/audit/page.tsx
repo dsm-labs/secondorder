@@ -1,5 +1,7 @@
 import Link from "next/link";
 import PageSection from "@/components/page-section";
+import EmptyState from "@/components/ui/empty-state";
+import StatusBadge from "@/components/ui/status-badge";
 import {
   AuditAction,
   AuditEntityType,
@@ -65,6 +67,7 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
   const entityType = getSingleParam(params.entityType);
   const rawUserId = getSingleParam(params.userId) ?? "";
   const userId = UUID_PATTERN.test(rawUserId) ? rawUserId : "";
+  const hasFilters = Boolean(query || action || entityType || userId);
   const conditions: Prisma.AuditEventWhereInput[] = [];
 
   if (query) {
@@ -114,8 +117,8 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
       title="Audit Log"
       subtitle="Review successful authentication activity and authorized business changes."
     >
-      <form className="grid gap-3 lg:grid-cols-4" method="get">
-        <label className="lg:col-span-4">
+      <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" method="get">
+        <label className="sm:col-span-2 lg:col-span-4">
           <span className="mb-1 block font-medium text-slate-700">Search</span>
           <input
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 outline-none focus:border-slate-500"
@@ -175,14 +178,14 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
           </select>
         </label>
 
-        <div className="flex items-end gap-3">
+        <div className="flex flex-wrap items-end gap-3">
           <button
-            className="rounded-md bg-slate-900 px-4 py-2 font-medium text-white hover:bg-slate-700"
+            className="rounded-md bg-slate-950 px-4 py-2 font-medium text-white transition hover:bg-slate-800"
             type="submit"
           >
             Apply
           </button>
-          <Link className="px-2 py-2 font-medium text-slate-700 hover:text-slate-950" href="/audit">
+          <Link className="rounded-md border border-slate-300 px-4 py-2 font-medium text-slate-700 transition hover:bg-slate-50" href="/audit">
             Reset
           </Link>
         </div>
@@ -208,7 +211,9 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
                   <span className="block font-medium text-slate-900">{event.user.name}</span>
                   <span className="block text-xs text-slate-500">{event.user.email}</span>
                 </td>
-                <td className="whitespace-nowrap px-3 py-3">{formatEnum(event.action)}</td>
+                <td className="whitespace-nowrap px-3 py-3">
+                  <StatusBadge value={event.action} />
+                </td>
                 <td className="whitespace-nowrap px-3 py-3">{formatEnum(event.entityType)}</td>
                 <td className="px-3 py-3 font-mono text-xs text-slate-600">{event.entityId}</td>
                 <td className="px-3 py-3">{event.description}</td>
@@ -218,7 +223,24 @@ export default async function AuditPage({ searchParams }: AuditPageProps) {
         </table>
 
         {events.length === 0 ? (
-          <p className="py-10 text-center text-slate-500">No audit events match these filters.</p>
+          <EmptyState
+            action={
+              hasFilters ? (
+                <Link
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  href="/audit"
+                >
+                  Clear Filters
+                </Link>
+              ) : undefined
+            }
+            description={
+              hasFilters
+                ? "Try broadening your search or clearing one or more filters."
+                : "Authentication and authorized business changes will appear here."
+            }
+            title={hasFilters ? "No matching audit events" : "No audit events yet"}
+          />
         ) : null}
       </div>
     </PageSection>

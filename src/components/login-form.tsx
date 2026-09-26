@@ -74,7 +74,8 @@ export default function LoginForm() {
       </div>
       {error ? <p className="text-sm text-red-700" role="alert">{error}</p> : null}
       <button
-        className="w-full rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
+        aria-disabled={pending}
+        className="w-full rounded-md bg-slate-950 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
         disabled={pending}
         type="submit"
       >

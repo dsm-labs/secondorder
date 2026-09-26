@@ -8,14 +8,11 @@ export default function RiskFreshnessIndicator({
   label,
 }: RiskFreshnessIndicatorProps) {
   return (
-    <span
-      className={`inline-flex w-fit rounded-md border px-2 py-1 text-xs font-medium ${
-        isCurrent
-          ? "border-slate-200 bg-slate-50 text-slate-600"
-          : "border-amber-200 bg-amber-50 text-amber-800"
-      }`}
-    >
-      {label}
-    </span>
+    <StatusBadge
+      label={label}
+      tone={isCurrent ? "neutral" : "warning"}
+      value={isCurrent ? "CURRENT" : "NEEDS_REASSESSMENT"}
+    />
   );
 }
+import StatusBadge from "@/components/ui/status-badge";

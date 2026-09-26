@@ -1,5 +1,7 @@
 import Link from "next/link";
 import PageSection from "@/components/page-section";
+import EmptyState from "@/components/ui/empty-state";
+import StatusBadge from "@/components/ui/status-badge";
 import {
   AssetStatus,
   BusinessCriticality,
@@ -89,6 +91,9 @@ export default async function AssetsPage({ searchParams }: AssetsPageProps) {
   const businessCriticality = getSingleParam(params.businessCriticality);
   const status = getSingleParam(params.status);
   const sort = getSingleParam(params.sort) ?? "name_asc";
+  const hasFilters = Boolean(
+    query || departmentId || businessCriticality || status
+  );
 
   const where: Prisma.AssetWhereInput = {};
 
@@ -146,7 +151,7 @@ export default async function AssetsPage({ searchParams }: AssetsPageProps) {
           ) : null}
         </div>
 
-        <form className="grid gap-3 lg:grid-cols-5" method="get">
+        <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" method="get">
           <label className="block text-sm font-medium text-slate-700 lg:col-span-2">
             Search
             <input
@@ -225,7 +230,7 @@ export default async function AssetsPage({ searchParams }: AssetsPageProps) {
             </select>
           </label>
 
-          <div className="flex items-end gap-3">
+          <div className="flex flex-wrap items-end gap-3">
             <button
               className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
               type="submit"
@@ -296,22 +301,48 @@ export default async function AssetsPage({ searchParams }: AssetsPageProps) {
                   {asset.department.name}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {formatEnum(asset.businessCriticality)}
+                  <StatusBadge value={asset.businessCriticality} />
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {asset.internetExposure ? "Yes" : "No"}
+                  <StatusBadge
+                    label={asset.internetExposure ? "Internet-Facing" : "Internal"}
+                    tone={asset.internetExposure ? "warning" : "neutral"}
+                    value={asset.internetExposure ? "EXPOSED" : "INTERNAL"}
+                  />
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {formatEnum(asset.status)}
+                  <StatusBadge value={asset.status} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
         {assets.length === 0 ? (
-          <p className="py-6 text-sm text-slate-500">
-            No assets match the current search and filters.
-          </p>
+          <EmptyState
+            action={
+              hasFilters ? (
+                <Link
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  href="/assets"
+                >
+                  Clear Filters
+                </Link>
+              ) : canManageAssets ? (
+                <Link
+                  className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                  href="/assets/new"
+                >
+                  Add Asset
+                </Link>
+              ) : undefined
+            }
+            description={
+              hasFilters
+                ? "Try broadening your search or clearing one or more filters."
+                : "No asset records are available in your organization yet."
+            }
+            title={hasFilters ? "No matching assets" : "No assets yet"}
+          />
         ) : null}
       </div>
     </PageSection>

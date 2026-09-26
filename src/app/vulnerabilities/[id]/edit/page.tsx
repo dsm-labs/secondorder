@@ -8,6 +8,7 @@ import {
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
 import { Permission } from "@/lib/permissions";
+import { isUuid } from "@/lib/identifiers";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,11 @@ export default async function EditVulnerabilityPage({
 }: EditVulnerabilityPageProps) {
   await requirePermission(Permission.MANAGE_VULNERABILITIES);
   const { id } = await params;
+
+  if (!isUuid(id)) {
+    notFound();
+  }
+
   const [vulnerability, assets] = await Promise.all([
     prisma.vulnerability.findUnique({ where: { id } }),
     prisma.asset.findMany({

@@ -8,11 +8,20 @@ export default async function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
-      <div className="w-full max-w-sm rounded-md border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-xl font-semibold text-slate-950">SecondOrder</p>
-        <h1 className="mt-8 text-2xl font-semibold text-slate-950">Sign in</h1>
-        <p className="mt-2 text-sm text-slate-600">Use your company account.</p>
+    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
+      <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="border-b border-slate-200 pb-6">
+          <p className="text-xl font-semibold text-slate-950">SecondOrder</p>
+          <p className="mt-1 text-sm text-slate-500">
+            Cyber risk management
+          </p>
+        </div>
+        <h1 className="mt-6 text-2xl font-semibold text-slate-950">
+          Sign in
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Access your organization&apos;s security workspace.
+        </p>
         <LoginForm />
       </div>
     </main>

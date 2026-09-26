@@ -1,5 +1,7 @@
 import Link from "next/link";
 import PageSection from "@/components/page-section";
+import EmptyState from "@/components/ui/empty-state";
+import StatusBadge from "@/components/ui/status-badge";
 import {
   Prisma,
   VulnerabilitySeverity,
@@ -116,6 +118,7 @@ export default async function VulnerabilitiesPage({
   const status = getSingleParam(params.status);
   const affectedAssetId = getSingleParam(params.affectedAssetId) ?? "";
   const sort = getSingleParam(params.sort) ?? "detection_desc";
+  const hasFilters = Boolean(query || severity || status || affectedAssetId);
 
   const where: Prisma.VulnerabilityWhereInput = {};
 
@@ -186,7 +189,7 @@ export default async function VulnerabilitiesPage({
           ) : null}
         </div>
 
-        <form className="grid gap-3 lg:grid-cols-5" method="get">
+        <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" method="get">
           <label className="block text-sm font-medium text-slate-700 lg:col-span-2">
             Search
             <input
@@ -261,7 +264,7 @@ export default async function VulnerabilitiesPage({
             </select>
           </label>
 
-          <div className="flex items-end gap-3">
+          <div className="flex flex-wrap items-end gap-3">
             <button
               className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
               type="submit"
@@ -321,7 +324,7 @@ export default async function VulnerabilitiesPage({
                   {item.cvssScore.toString()}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {formatEnum(item.severity)}
+                  <StatusBadge value={item.severity} />
                 </td>
                 <td className="px-3 py-4 text-slate-600">
                   {item.affectedAsset.name}
@@ -330,16 +333,48 @@ export default async function VulnerabilitiesPage({
                   {formatDate(item.detectionDate)}
                 </td>
                 <td className="px-3 py-4 text-slate-600">
-                  {formatEnum(item.status)}
+                  <StatusBadge value={item.status} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
         {vulnerabilities.length === 0 ? (
-          <p className="py-6 text-sm text-slate-500">
-            No vulnerabilities match the current search and filters.
-          </p>
+          <EmptyState
+            action={
+              hasFilters ? (
+                <Link
+                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  href="/vulnerabilities"
+                >
+                  Clear Filters
+                </Link>
+              ) : canManageVulnerabilities ? (
+                <div className="flex flex-wrap justify-center gap-3">
+                  <Link
+                    className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    href="/vulnerabilities/import"
+                  >
+                    Import Findings
+                  </Link>
+                  <Link
+                    className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                    href="/vulnerabilities/new"
+                  >
+                    Add Vulnerability
+                  </Link>
+                </div>
+              ) : undefined
+            }
+            description={
+              hasFilters
+                ? "Try broadening your search or clearing one or more filters."
+                : "No vulnerability findings are currently recorded."
+            }
+            title={
+              hasFilters ? "No matching vulnerabilities" : "No vulnerabilities yet"
+            }
+          />
         ) : null}
       </div>
     </PageSection>

@@ -2,24 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageSection from "@/components/page-section";
 import OverdueIndicator from "@/components/remediation/overdue-indicator";
+import StatusBadge from "@/components/ui/status-badge";
 import { isRemediationTaskOverdue } from "@/lib/remediation";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
 import { hasPermission, Permission } from "@/lib/permissions";
+import { isUuid } from "@/lib/identifiers";
 
 export const dynamic = "force-dynamic";
 
 type RemediationTaskDetailPageProps = {
   params: Promise<{ id: string }>;
 };
-
-function formatEnum(value: string) {
-  return value
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
 
 function formatDate(value: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -49,6 +43,11 @@ export default async function RemediationTaskDetailPage({
     Permission.MANAGE_REMEDIATION
   );
   const { id } = await params;
+
+  if (!isUuid(id)) {
+    notFound();
+  }
+
   const task = await prisma.remediationTask.findUnique({
     where: { id },
     include: {
@@ -74,9 +73,9 @@ export default async function RemediationTaskDetailPage({
       label: "Assigned User",
       value: `${task.assignedUser.name} (${task.assignedUser.department.name})`,
     },
-    { label: "Priority", value: formatEnum(task.priority) },
+    { label: "Priority", value: <StatusBadge value={task.priority} /> },
     { label: "Due Date", value: formatDate(task.dueDate) },
-    { label: "Status", value: formatEnum(task.status) },
+    { label: "Status", value: <StatusBadge value={task.status} /> },
     { label: "Created", value: formatTimestamp(task.createdAt) },
     { label: "Last Updated", value: formatTimestamp(task.updatedAt) },
   ];
@@ -87,13 +86,16 @@ export default async function RemediationTaskDetailPage({
     },
     {
       label: "CVSS / Severity",
-      value: `${task.relatedVulnerability.cvssScore.toString()} / ${formatEnum(
-        task.relatedVulnerability.severity
-      )}`,
+      value: (
+        <span className="flex flex-wrap items-center gap-2">
+          <span>{task.relatedVulnerability.cvssScore.toString()}</span>
+          <StatusBadge value={task.relatedVulnerability.severity} />
+        </span>
+      ),
     },
     {
       label: "Vulnerability Status",
-      value: formatEnum(task.relatedVulnerability.status),
+      value: <StatusBadge value={task.relatedVulnerability.status} />,
     },
   ];
   const assetDetails = [
@@ -101,11 +103,17 @@ export default async function RemediationTaskDetailPage({
     { label: "Department", value: task.relatedAsset.department.name },
     {
       label: "Business Criticality",
-      value: formatEnum(task.relatedAsset.businessCriticality),
+      value: <StatusBadge value={task.relatedAsset.businessCriticality} />,
     },
     {
       label: "Internet Exposure",
-      value: task.relatedAsset.internetExposure ? "Yes" : "No",
+      value: (
+        <StatusBadge
+          label={task.relatedAsset.internetExposure ? "Internet-Facing" : "Internal"}
+          tone={task.relatedAsset.internetExposure ? "warning" : "neutral"}
+          value={task.relatedAsset.internetExposure ? "EXPOSED" : "INTERNAL"}
+        />
+      ),
     },
   ];
   const riskDetails = task.relatedVulnerability.riskRecord
@@ -118,8 +126,12 @@ export default async function RemediationTaskDetailPage({
         },
         {
           label: "Organizational Risk Level",
-          value: formatEnum(
-            task.relatedVulnerability.riskRecord.organizationalRiskLevel
+          value: (
+            <StatusBadge
+              value={
+                task.relatedVulnerability.riskRecord.organizationalRiskLevel
+              }
+            />
           ),
         },
       ]

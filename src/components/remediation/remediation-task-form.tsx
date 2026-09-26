@@ -215,6 +215,7 @@ export default function RemediationTaskForm({
 
       <div className="flex flex-wrap gap-3 border-t border-slate-200 pt-5">
         <button
+          aria-disabled={pending}
           className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
           disabled={pending}
           type="submit"

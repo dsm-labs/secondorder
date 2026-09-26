@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SubmitButton from "@/components/ui/submit-button";
 import {
   AssetStatus,
   BusinessCriticality,
@@ -160,12 +161,12 @@ export default function AssetForm({
       </div>
 
       <div className="flex flex-wrap gap-3 border-t border-slate-200 pt-5">
-        <button
-          className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-          type="submit"
+        <SubmitButton
+          className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:bg-slate-400"
+          pendingLabel="Saving..."
         >
           {submitLabel}
-        </button>
+        </SubmitButton>
         <Link
           className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           href={asset ? `/assets/${asset.id}` : "/assets"}

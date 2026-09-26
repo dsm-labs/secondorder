@@ -1,5 +1,6 @@
 import Link from "next/link";
 import OverdueIndicator from "@/components/remediation/overdue-indicator";
+import StatusBadge from "@/components/ui/status-badge";
 import type {
   OrganizationalRiskLevel,
   RemediationStatus,
@@ -35,14 +36,6 @@ type RemediationOperationsOverviewProps = {
   overdueTaskCount: number;
   workload: RemediationWorkload[];
 };
-
-function formatEnum(value: string) {
-  return value
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -98,7 +91,7 @@ export default function RemediationOperationsOverview({
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (
           <div
-            className="rounded-md border border-slate-200 bg-slate-50 p-4"
+            className="min-h-36 rounded-md border border-slate-200 bg-slate-50 p-4"
             key={metric.label}
           >
             <p className="text-sm font-medium text-slate-600">{metric.label}</p>
@@ -173,9 +166,18 @@ export default function RemediationOperationsOverview({
                     </Link>
                   </td>
                   <td className="px-3 py-4 text-slate-600">
-                    {item.riskRecord
-                      ? `${item.riskRecord.organizationalRiskScore.toFixed(2)} / ${formatEnum(item.riskRecord.organizationalRiskLevel)}`
-                      : "Not assessed"}
+                    {item.riskRecord ? (
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span>
+                          {item.riskRecord.organizationalRiskScore.toFixed(2)}
+                        </span>
+                        <StatusBadge
+                          value={item.riskRecord.organizationalRiskLevel}
+                        />
+                      </span>
+                    ) : (
+                      "Not assessed"
+                    )}
                   </td>
                   <td className="px-3 py-4 text-slate-600">
                     {item.assignedUserName}
@@ -184,7 +186,7 @@ export default function RemediationOperationsOverview({
                     {formatDate(item.dueDate)}
                   </td>
                   <td className="px-3 py-4 text-slate-600">
-                    {formatEnum(item.status)}
+                    <StatusBadge value={item.status} />
                   </td>
                   <td className="px-3 py-4 text-slate-600">
                     <OverdueIndicator isOverdue={item.isOverdue} />

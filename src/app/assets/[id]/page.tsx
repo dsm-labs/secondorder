@@ -2,24 +2,19 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ArchiveAssetForm from "@/components/assets/archive-asset-form";
 import PageSection from "@/components/page-section";
+import EmptyState from "@/components/ui/empty-state";
+import StatusBadge from "@/components/ui/status-badge";
 import { AssetStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
 import { hasPermission, Permission } from "@/lib/permissions";
+import { isUuid } from "@/lib/identifiers";
 
 export const dynamic = "force-dynamic";
 
 type AssetDetailPageProps = {
   params: Promise<{ id: string }>;
 };
-
-function formatEnum(value: string) {
-  return value
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
 
 function formatDate(value: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -32,7 +27,16 @@ function formatDate(value: Date) {
 export default async function AssetDetailPage({ params }: AssetDetailPageProps) {
   const user = await requirePermission(Permission.VIEW_ASSETS);
   const canManageAssets = hasPermission(user.role, Permission.MANAGE_ASSETS);
+  const canManageVulnerabilities = hasPermission(
+    user.role,
+    Permission.MANAGE_VULNERABILITIES
+  );
   const { id } = await params;
+
+  if (!isUuid(id)) {
+    notFound();
+  }
+
   const asset = await prisma.asset.findUnique({
     where: { id },
     include: {
@@ -59,13 +63,19 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
     { label: "Owner", value: asset.owner?.name ?? "No owner selected" },
     {
       label: "Business Criticality",
-      value: formatEnum(asset.businessCriticality),
+      value: <StatusBadge value={asset.businessCriticality} />,
     },
     {
       label: "Internet Exposure",
-      value: asset.internetExposure ? "Yes" : "No",
+      value: (
+        <StatusBadge
+          label={asset.internetExposure ? "Internet-Facing" : "Internal"}
+          tone={asset.internetExposure ? "warning" : "neutral"}
+          value={asset.internetExposure ? "EXPOSED" : "INTERNAL"}
+        />
+      ),
     },
-    { label: "Status", value: formatEnum(asset.status) },
+    { label: "Status", value: <StatusBadge value={asset.status} /> },
   ];
 
   return (
@@ -141,22 +151,33 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
                     {vulnerability.title}
                   </td>
                   <td className="px-3 py-4 text-slate-600">
-                    {formatEnum(vulnerability.severity)}
+                    <StatusBadge value={vulnerability.severity} />
                   </td>
                   <td className="px-3 py-4 text-slate-600">
                     {formatDate(vulnerability.detectionDate)}
                   </td>
                   <td className="px-3 py-4 text-slate-600">
-                    {formatEnum(vulnerability.status)}
+                    <StatusBadge value={vulnerability.status} />
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
           {asset.vulnerabilities.length === 0 ? (
-            <p className="py-6 text-sm text-slate-500">
-              No vulnerabilities are currently linked to this asset.
-            </p>
+            <EmptyState
+              action={
+                canManageVulnerabilities ? (
+                  <Link
+                    className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                    href="/vulnerabilities/new"
+                  >
+                    Add Vulnerability
+                  </Link>
+                ) : undefined
+              }
+              description="No vulnerability findings are currently associated with this asset."
+              title="No related vulnerabilities"
+            />
           ) : null}
         </div>
       </div>

@@ -9,6 +9,7 @@ import { getRemediationFormOptions } from "@/lib/remediation-form-options";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
 import { Permission } from "@/lib/permissions";
+import { isUuid } from "@/lib/identifiers";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,11 @@ export default async function EditRemediationTaskPage({
 }: EditRemediationTaskPageProps) {
   await requirePermission(Permission.MANAGE_REMEDIATION);
   const { id } = await params;
+
+  if (!isUuid(id)) {
+    notFound();
+  }
+
   const [task, options] = await Promise.all([
     prisma.remediationTask.findUnique({ where: { id } }),
     getRemediationFormOptions(),
