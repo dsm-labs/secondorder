@@ -1,6 +1,6 @@
 # Screenshot Plan
 
-No application screenshots are committed yet. Add final captures to this directory after the public deployment review using these filenames:
+No application screenshots are committed yet. Capture final images from the live deployment using these filenames:
 
 | Filename | View |
 | --- | --- |

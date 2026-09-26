@@ -62,4 +62,4 @@ Next.js applies these response headers across the application:
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - a restrictive Permissions Policy for camera, microphone, and geolocation
 
-These controls supplement application-level validation and authorization; they do not replace browser, hosting, dependency, database, or operational security review before a real deployment.
+These controls supplement application-level validation and authorization; they do not replace ongoing browser, hosting, dependency, database, or operational security review for a deployed application.

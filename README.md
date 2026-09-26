@@ -2,7 +2,9 @@
 
 SecondOrder is an enterprise-style cybersecurity risk management application that connects technical vulnerability findings with asset ownership, business impact, and remediation work.
 
-SecondOrder v1 is feature-complete locally. Public deployment is pending.
+**Live demo:** [https://secondorder-iota.vercel.app](https://secondorder-iota.vercel.app)
+
+SecondOrder v1 is feature-complete and deployed on Vercel.
 
 ## Overview
 
@@ -89,7 +91,7 @@ See [Technical Decisions](docs/technical-decisions.md) for the project-specific 
 
 ## Deployment
 
-See the [Vercel and Neon Deployment Guide](docs/deployment.md) for environment requirements, migration strategy, and the post-deployment smoke-test plan.
+The live application runs on Vercel with Neon PostgreSQL. See the [Vercel and Neon Deployment Guide](docs/deployment.md) for environment requirements, build behavior, migration strategy, and the production smoke-test checklist.
 
 ## Tech Stack
 
@@ -201,7 +203,7 @@ npm run build
 
 ## Screenshots
 
-Screenshots are not committed yet. The planned capture set and filenames are documented in [docs/screenshots/README.md](docs/screenshots/README.md) so the images can be added after final deployment review without fabricating placeholders.
+Repository screenshots are not committed yet. The planned capture set and filenames are documented in [docs/screenshots/README.md](docs/screenshots/README.md); the deployed application is available through the live demo above.
 
 ## Project Structure
 
@@ -217,4 +219,4 @@ samples/          Synthetic vulnerability import data
 
 ## Project Scope
 
-SecondOrder is a portfolio project and is not a claim of formal security certification or production readiness. Public deployment is pending. Historical risk snapshots, scanner-specific integrations, MFA, self-service account management, and exports are outside the current v1 implementation.
+SecondOrder is a deployed portfolio project and is not a claim of formal security certification or enterprise production readiness. Historical risk snapshots, scanner-specific integrations, MFA, self-service account management, and exports are outside the current v1 implementation.

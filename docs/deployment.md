@@ -1,14 +1,16 @@
 # Vercel And Neon Deployment
 
-SecondOrder is designed for Vercel's native Next.js deployment with the existing Neon PostgreSQL database. Deployment does not require the Vercel CLI or a `vercel.json` file.
+SecondOrder is live at [https://secondorder-iota.vercel.app](https://secondorder-iota.vercel.app) using Vercel's native Next.js deployment and Neon PostgreSQL. Deployment does not require the Vercel CLI or a `vercel.json` file.
 
-## Create The Vercel Project
+## Vercel Project Configuration
 
-1. Import the GitHub repository in the Vercel dashboard.
-2. Leave the framework preset as the auto-detected **Next.js** preset.
-3. Keep the repository root as the project root.
-4. Keep Vercel's default install and build behavior. The repository uses `npm run build`, and its `postinstall` script generates Prisma Client first.
-5. Configure the required environment variables before the first deployment.
+The production project uses this configuration:
+
+1. The GitHub repository is connected through the Vercel dashboard.
+2. The framework preset is the auto-detected **Next.js** preset.
+3. The repository root is the project root.
+4. Vercel's default install and build behavior is retained. The repository uses `npm run build`, and its `postinstall` script generates Prisma Client first.
+5. Required environment variables are configured in Vercel before deployment.
 
 The `engines` entry in `package.json` requires Node.js 20.9 or newer.
 
@@ -65,6 +67,8 @@ Do not run `prisma migrate dev`, `prisma db push`, resets, or seed commands as p
 - The configured security headers apply through normal Next.js response handling on Vercel.
 
 ## Post-Deployment Smoke Test
+
+The current production deployment has completed this smoke test successfully. Use the checklist again after changes to application behavior, authorization, database structure, or hosting configuration.
 
 ### Unauthenticated
 
