@@ -87,6 +87,10 @@ See [Security Design](docs/security.md) for the implemented controls and project
 
 See [Technical Decisions](docs/technical-decisions.md) for the project-specific tradeoffs behind the application architecture, risk model, data relationships, audit strategy, and reporting approach.
 
+## Deployment
+
+See the [Vercel and Neon Deployment Guide](docs/deployment.md) for environment requirements, migration strategy, and the post-deployment smoke-test plan.
+
 ## Tech Stack
 
 | Area | Technology |
