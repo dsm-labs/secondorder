@@ -1,62 +1,113 @@
+import DashboardOverview from "@/components/dashboard/dashboard-overview";
 import PageSection from "@/components/page-section";
-import prisma from "@/lib/prisma";
+import { UserRole } from "@/generated/prisma/client";
 import { requirePermission } from "@/lib/authorization";
+import { buildDashboardSummary } from "@/lib/dashboard";
 import { Permission } from "@/lib/permissions";
-import {
-  OrganizationalRiskLevel,
-  RemediationStatus,
-  VulnerabilityStatus,
-} from "@/generated/prisma/client";
+import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+const dashboardSubtitles = {
+  [UserRole.EXECUTIVE]:
+    "A concise view of organizational exposure, business risk, and remediation progress.",
+  [UserRole.ANALYST]:
+    "Technical findings and organizational risk priorities requiring security review.",
+  [UserRole.IT_ADMIN]:
+    "Asset exposure and remediation work requiring operational attention.",
+  [UserRole.SECURITY_MANAGER]:
+    "Organization-wide security risk, technical findings, and remediation performance.",
+} satisfies Record<UserRole, string>;
+
 export default async function Home() {
-  await requirePermission(Permission.VIEW_DASHBOARD);
-  const [
-    totalAssets,
-    openVulnerabilities,
-    criticalRisks,
-    openRemediationTasks,
-  ] = await Promise.all([
-    prisma.asset.count(),
-    prisma.vulnerability.count({
-      where: { status: VulnerabilityStatus.OPEN },
+  const user = await requirePermission(Permission.VIEW_DASHBOARD);
+  const [assets, vulnerabilities, risks, remediationTasks] = await Promise.all([
+    prisma.asset.findMany({
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        internetExposure: true,
+        department: { select: { id: true, name: true } },
+      },
     }),
-    prisma.riskRecord.count({
-      where: { organizationalRiskLevel: OrganizationalRiskLevel.CRITICAL },
+    prisma.vulnerability.findMany({
+      select: {
+        id: true,
+        identifier: true,
+        title: true,
+        cvssScore: true,
+        severity: true,
+        status: true,
+        affectedAsset: { select: { id: true, name: true } },
+      },
     }),
-    prisma.remediationTask.count({
-      where: { status: RemediationStatus.OPEN },
+    prisma.riskRecord.findMany({
+      select: {
+        id: true,
+        organizationalRiskLevel: true,
+        organizationalRiskScore: true,
+        status: true,
+        vulnerability: {
+          select: {
+            id: true,
+            identifier: true,
+            title: true,
+            cvssScore: true,
+            severity: true,
+            status: true,
+            affectedAsset: {
+              select: {
+                id: true,
+                name: true,
+                status: true,
+                department: { select: { id: true, name: true } },
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.remediationTask.findMany({
+      select: {
+        id: true,
+        title: true,
+        dueDate: true,
+        priority: true,
+        status: true,
+        assignedUser: {
+          select: {
+            id: true,
+            name: true,
+            department: { select: { name: true } },
+          },
+        },
+      },
     }),
   ]);
 
-  const dashboardMetrics = [
-    { label: "Total Assets", value: totalAssets.toString() },
-    { label: "Open Vulnerabilities", value: openVulnerabilities.toString() },
-    { label: "Critical Risks", value: criticalRisks.toString() },
-    { label: "Open Remediation Tasks", value: openRemediationTasks.toString() },
-  ];
+  const summary = buildDashboardSummary({
+    assets,
+    vulnerabilities: vulnerabilities.map((vulnerability) => ({
+      ...vulnerability,
+      cvssScore: Number(vulnerability.cvssScore.toString()),
+    })),
+    risks: risks.map((risk) => ({
+      ...risk,
+      organizationalRiskScore: Number(
+        risk.organizationalRiskScore.toString()
+      ),
+      vulnerability: {
+        ...risk.vulnerability,
+        cvssScore: Number(risk.vulnerability.cvssScore.toString()),
+      },
+    })),
+    remediationTasks,
+  });
 
   return (
-    <PageSection
-      title="Dashboard"
-      subtitle="A simple starting point for the future SecondOrder overview."
-    >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {dashboardMetrics.map((metric) => (
-          <div
-            className="rounded-md border border-slate-200 bg-slate-50 p-4"
-            key={metric.label}
-          >
-            <p className="text-sm font-medium text-slate-500">
-              {metric.label}
-            </p>
-            <p className="mt-3 text-3xl font-semibold text-slate-950">
-              {metric.value}
-            </p>
-          </div>
-        ))}
-      </div>
+    <PageSection title="Dashboard" subtitle={dashboardSubtitles[user.role]}>
+      <DashboardOverview role={user.role} summary={summary} />
     </PageSection>
   );
 }
