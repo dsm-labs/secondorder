@@ -23,4 +23,4 @@ SecondOrder is being developed as a cybersecurity and information systems portfo
 
 ## Authentication setup
 
-SecondOrder uses Auth.js credentials authentication. Local development requires `AUTH_SECRET` in `.env`, and seeded demo authentication uses `DEMO_USER_PASSWORD`. Never commit secrets or environment values. After configuring the database and local environment, run the normal Prisma migration and seed setup as documented.
+SecondOrder uses Auth.js credentials authentication. For local development, add `AUTH_SECRET` and `DEMO_USER_PASSWORD` to your .env file. Keep these values local and out of version control. After configuring the environment, run the Prisma migration and seed commands before starting the app.
