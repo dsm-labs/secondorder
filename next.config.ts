@@ -11,6 +11,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Application validation enforces a 1 MiB JSON file limit. This leaves
+    // enough transport overhead for multipart preview and confirmation forms.
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
+  },
   async headers() {
     return [
       {

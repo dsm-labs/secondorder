@@ -169,12 +169,20 @@ export default async function VulnerabilitiesPage({
             {vulnerabilities.length === 1 ? "y" : "ies"}.
           </p>
           {canManageVulnerabilities ? (
-            <Link
-              className="inline-flex w-fit rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-              href="/vulnerabilities/new"
-            >
-              Add Vulnerability
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                className="inline-flex w-fit rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                href="/vulnerabilities/import"
+              >
+                Import Findings
+              </Link>
+              <Link
+                className="inline-flex w-fit rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                href="/vulnerabilities/new"
+              >
+                Add Vulnerability
+              </Link>
+            </div>
           ) : null}
         </div>
 

@@ -15,6 +15,13 @@ describe("audit descriptions", () => {
       'Updated vulnerability "CVE-DEMO-001".'
     );
     assert.equal(
+      auditDescriptions.vulnerabilityImported(
+        "CVE-DEMO-101",
+        "Demo Scanner"
+      ),
+      'Imported vulnerability "CVE-DEMO-101" from "Demo Scanner".'
+    );
+    assert.equal(
       auditDescriptions.riskUpdated("CVE-DEMO-001"),
       'Reassessed risk for vulnerability "CVE-DEMO-001".'
     );

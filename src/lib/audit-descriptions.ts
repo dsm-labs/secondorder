@@ -14,6 +14,8 @@ export const auditDescriptions = {
   assetArchived: (name: string) => `Archived asset ${quoted(name)}.`,
   vulnerabilityCreated: (identifier: string) =>
     `Created vulnerability ${quoted(identifier)}.`,
+  vulnerabilityImported: (identifier: string, source: string) =>
+    `Imported vulnerability ${quoted(identifier)} from ${quoted(source)}.`,
   vulnerabilityUpdated: (identifier: string) =>
     `Updated vulnerability ${quoted(identifier)}.`,
   riskCreated: (identifier: string) =>
