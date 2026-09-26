@@ -3,12 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  AuditAction,
+  AuditEntityType,
   Prisma,
   VulnerabilitySeverity,
   VulnerabilityStatus,
   type VulnerabilitySeverity as VulnerabilitySeverityValue,
   type VulnerabilityStatus as VulnerabilityStatusValue,
 } from "@/generated/prisma/client";
+import { auditDescriptions } from "@/lib/audit-descriptions";
+import { recordAuditEvent } from "@/lib/audit";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
 import { Permission } from "@/lib/permissions";
@@ -150,7 +154,7 @@ export async function createVulnerability(
   _previousState: VulnerabilityFormState,
   formData: FormData
 ): Promise<VulnerabilityFormState> {
-  await requirePermission(Permission.MANAGE_VULNERABILITIES);
+  const user = await requirePermission(Permission.MANAGE_VULNERABILITIES);
   const input = await readVulnerabilityInput(formData);
 
   if ("error" in input) {
@@ -174,9 +178,26 @@ export async function createVulnerability(
   let vulnerabilityId = "";
 
   try {
-    const vulnerability = await prisma.vulnerability.create({
-      data: input,
-      select: { id: true },
+    const vulnerability = await prisma.$transaction(async (transaction) => {
+      const createdVulnerability = await transaction.vulnerability.create({
+        data: input,
+        select: { id: true, identifier: true },
+      });
+
+      await recordAuditEvent(
+        {
+          userId: user.id,
+          action: AuditAction.CREATE,
+          entityType: AuditEntityType.VULNERABILITY,
+          entityId: createdVulnerability.id,
+          description: auditDescriptions.vulnerabilityCreated(
+            createdVulnerability.identifier
+          ),
+        },
+        transaction
+      );
+
+      return createdVulnerability;
     });
 
     vulnerabilityId = vulnerability.id;
@@ -200,7 +221,7 @@ export async function updateVulnerability(
   _previousState: VulnerabilityFormState,
   formData: FormData
 ): Promise<VulnerabilityFormState> {
-  await requirePermission(Permission.MANAGE_VULNERABILITIES);
+  const user = await requirePermission(Permission.MANAGE_VULNERABILITIES);
   const input = await readVulnerabilityInput(formData);
 
   if ("error" in input) {
@@ -223,9 +244,25 @@ export async function updateVulnerability(
   }
 
   try {
-    await prisma.vulnerability.update({
-      where: { id: vulnerabilityId },
-      data: input,
+    await prisma.$transaction(async (transaction) => {
+      const vulnerability = await transaction.vulnerability.update({
+        where: { id: vulnerabilityId },
+        data: input,
+        select: { id: true, identifier: true },
+      });
+
+      await recordAuditEvent(
+        {
+          userId: user.id,
+          action: AuditAction.UPDATE,
+          entityType: AuditEntityType.VULNERABILITY,
+          entityId: vulnerability.id,
+          description: auditDescriptions.vulnerabilityUpdated(
+            vulnerability.identifier
+          ),
+        },
+        transaction
+      );
     });
   } catch (error) {
     if (isUniqueConstraintError(error)) {

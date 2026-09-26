@@ -11,6 +11,7 @@ export const Permission = {
   VIEW_REMEDIATION: "VIEW_REMEDIATION",
   MANAGE_REMEDIATION: "MANAGE_REMEDIATION",
   VIEW_REPORTS: "VIEW_REPORTS",
+  VIEW_AUDIT_LOG: "VIEW_AUDIT_LOG",
 } as const;
 
 export type Permission = (typeof Permission)[keyof typeof Permission];
@@ -46,6 +47,7 @@ const rolePermissions = {
     Permission.VIEW_REMEDIATION,
     Permission.MANAGE_REMEDIATION,
     Permission.VIEW_REPORTS,
+    Permission.VIEW_AUDIT_LOG,
   ]),
   EXECUTIVE: new Set<Permission>([
     Permission.VIEW_DASHBOARD,

@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  AuditAction,
+  AuditEntityType,
   BusinessImpact,
   DataSensitivity,
   Prisma,
@@ -11,6 +13,8 @@ import {
   type DataSensitivity as DataSensitivityValue,
   type RiskStatus as RiskStatusValue,
 } from "@/generated/prisma/client";
+import { auditDescriptions } from "@/lib/audit-descriptions";
+import { recordAuditEvent } from "@/lib/audit";
 import { calculateOrganizationalRisk } from "@/lib/risk-engine";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
@@ -50,7 +54,7 @@ export async function saveRiskAssessment(
   _previousState: RiskAssessmentFormState,
   formData: FormData
 ): Promise<RiskAssessmentFormState> {
-  await requirePermission(Permission.ASSESS_RISKS);
+  const user = await requirePermission(Permission.ASSESS_RISKS);
   const dataSensitivity = getText(formData, "dataSensitivity");
   const businessImpact = getText(formData, "businessImpact");
   const status = getText(formData, "status");
@@ -102,26 +106,47 @@ export async function saveRiskAssessment(
   let riskRecordId = "";
 
   try {
-    const riskRecord = await prisma.riskRecord.upsert({
-      where: { vulnerabilityId },
-      create: {
-        vulnerabilityId,
-        dataSensitivity,
-        businessImpact,
-        organizationalRiskScore: calculatedRisk.organizationalRiskScore,
-        organizationalRiskLevel: calculatedRisk.organizationalRiskLevel,
-        explanation: calculatedRisk.explanation,
-        status,
-      },
-      update: {
-        dataSensitivity,
-        businessImpact,
-        organizationalRiskScore: calculatedRisk.organizationalRiskScore,
-        organizationalRiskLevel: calculatedRisk.organizationalRiskLevel,
-        explanation: calculatedRisk.explanation,
-        status,
-      },
-      select: { id: true },
+    const riskRecord = await prisma.$transaction(async (transaction) => {
+      const existingRiskRecord = await transaction.riskRecord.findUnique({
+        where: { vulnerabilityId },
+        select: { id: true },
+      });
+      const savedRiskRecord = await transaction.riskRecord.upsert({
+        where: { vulnerabilityId },
+        create: {
+          vulnerabilityId,
+          dataSensitivity,
+          businessImpact,
+          organizationalRiskScore: calculatedRisk.organizationalRiskScore,
+          organizationalRiskLevel: calculatedRisk.organizationalRiskLevel,
+          explanation: calculatedRisk.explanation,
+          status,
+        },
+        update: {
+          dataSensitivity,
+          businessImpact,
+          organizationalRiskScore: calculatedRisk.organizationalRiskScore,
+          organizationalRiskLevel: calculatedRisk.organizationalRiskLevel,
+          explanation: calculatedRisk.explanation,
+          status,
+        },
+        select: { id: true },
+      });
+
+      await recordAuditEvent(
+        {
+          userId: user.id,
+          action: existingRiskRecord ? AuditAction.UPDATE : AuditAction.CREATE,
+          entityType: AuditEntityType.RISK_RECORD,
+          entityId: savedRiskRecord.id,
+          description: existingRiskRecord
+            ? auditDescriptions.riskUpdated(vulnerability.identifier)
+            : auditDescriptions.riskCreated(vulnerability.identifier),
+        },
+        transaction
+      );
+
+      return savedRiskRecord;
     });
 
     riskRecordId = riskRecord.id;

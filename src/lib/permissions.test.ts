@@ -34,6 +34,7 @@ const expectedPermissions = {
     Permission.VIEW_REMEDIATION,
     Permission.MANAGE_REMEDIATION,
     Permission.VIEW_REPORTS,
+    Permission.VIEW_AUDIT_LOG,
   ],
   [UserRole.EXECUTIVE]: [
     Permission.VIEW_DASHBOARD,
@@ -79,5 +80,15 @@ describe("role-based permissions", () => {
     assert.equal(hasPermission(UserRole.EXECUTIVE, Permission.MANAGE_VULNERABILITIES), false);
     assert.equal(hasPermission(UserRole.EXECUTIVE, Permission.ASSESS_RISKS), false);
     assert.equal(hasPermission(UserRole.EXECUTIVE, Permission.MANAGE_REMEDIATION), false);
+  });
+
+  it("restricts the audit log to security managers", () => {
+    assert.equal(
+      hasPermission(UserRole.SECURITY_MANAGER, Permission.VIEW_AUDIT_LOG),
+      true
+    );
+    assert.equal(hasPermission(UserRole.ANALYST, Permission.VIEW_AUDIT_LOG), false);
+    assert.equal(hasPermission(UserRole.IT_ADMIN, Permission.VIEW_AUDIT_LOG), false);
+    assert.equal(hasPermission(UserRole.EXECUTIVE, Permission.VIEW_AUDIT_LOG), false);
   });
 });

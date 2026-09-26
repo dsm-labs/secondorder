@@ -3,11 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  AuditAction,
+  AuditEntityType,
   RemediationPriority,
   RemediationStatus,
   type RemediationPriority as RemediationPriorityValue,
   type RemediationStatus as RemediationStatusValue,
 } from "@/generated/prisma/client";
+import { auditDescriptions } from "@/lib/audit-descriptions";
+import { recordAuditEvent } from "@/lib/audit";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
 import { Permission } from "@/lib/permissions";
@@ -137,6 +141,7 @@ function readRemediationTaskInput(
 
 async function saveRemediationTask(
   input: RemediationTaskInput,
+  actorUserId: string,
   remediationTaskId?: string
 ) {
   return prisma.$transaction(async (transaction) => {
@@ -189,16 +194,38 @@ async function saveRemediationTask(
       const task = await transaction.remediationTask.update({
         where: { id: remediationTaskId },
         data,
-        select: { id: true },
+        select: { id: true, title: true },
       });
+
+      await recordAuditEvent(
+        {
+          userId: actorUserId,
+          action: AuditAction.UPDATE,
+          entityType: AuditEntityType.REMEDIATION_TASK,
+          entityId: task.id,
+          description: auditDescriptions.remediationTaskUpdated(task.title),
+        },
+        transaction
+      );
 
       return task.id;
     }
 
     const task = await transaction.remediationTask.create({
       data,
-      select: { id: true },
+      select: { id: true, title: true },
     });
+
+    await recordAuditEvent(
+      {
+        userId: actorUserId,
+        action: AuditAction.CREATE,
+        entityType: AuditEntityType.REMEDIATION_TASK,
+        entityId: task.id,
+        description: auditDescriptions.remediationTaskCreated(task.title),
+      },
+      transaction
+    );
 
     return task.id;
   });
@@ -208,7 +235,7 @@ export async function createRemediationTask(
   _previousState: RemediationTaskFormState,
   formData: FormData
 ): Promise<RemediationTaskFormState> {
-  await requirePermission(Permission.MANAGE_REMEDIATION);
+  const user = await requirePermission(Permission.MANAGE_REMEDIATION);
   const input = readRemediationTaskInput(formData);
 
   if ("error" in input) {
@@ -218,7 +245,7 @@ export async function createRemediationTask(
   let remediationTaskId: string;
 
   try {
-    remediationTaskId = await saveRemediationTask(input);
+    remediationTaskId = await saveRemediationTask(input, user.id);
   } catch (error) {
     if (error instanceof FormValidationError) {
       return { error: error.message };
@@ -239,7 +266,7 @@ export async function updateRemediationTask(
   _previousState: RemediationTaskFormState,
   formData: FormData
 ): Promise<RemediationTaskFormState> {
-  await requirePermission(Permission.MANAGE_REMEDIATION);
+  const user = await requirePermission(Permission.MANAGE_REMEDIATION);
   if (!UUID_PATTERN.test(remediationTaskId)) {
     return { error: "This remediation task is not valid." };
   }
@@ -251,7 +278,7 @@ export async function updateRemediationTask(
   }
 
   try {
-    await saveRemediationTask(input, remediationTaskId);
+    await saveRemediationTask(input, user.id, remediationTaskId);
   } catch (error) {
     if (error instanceof FormValidationError) {
       return { error: error.message };

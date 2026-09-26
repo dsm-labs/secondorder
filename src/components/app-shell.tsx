@@ -21,6 +21,11 @@ const navigationItems = [
     permission: Permission.VIEW_REMEDIATION,
   },
   { label: "Reports", href: "/reports", permission: Permission.VIEW_REPORTS },
+  {
+    label: "Audit Log",
+    href: "/audit",
+    permission: Permission.VIEW_AUDIT_LOG,
+  },
 ];
 
 export default function AppShell({

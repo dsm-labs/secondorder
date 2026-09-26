@@ -3,11 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  AuditAction,
+  AuditEntityType,
   AssetStatus,
   BusinessCriticality,
   type AssetStatus as AssetStatusValue,
   type BusinessCriticality as BusinessCriticalityValue,
 } from "@/generated/prisma/client";
+import { auditDescriptions } from "@/lib/audit-descriptions";
+import { recordAuditEvent } from "@/lib/audit";
 import prisma from "@/lib/prisma";
 import { requirePermission } from "@/lib/authorization";
 import { Permission } from "@/lib/permissions";
@@ -100,22 +104,54 @@ async function readAssetInput(formData: FormData): Promise<AssetInput> {
 }
 
 export async function createAsset(formData: FormData) {
-  await requirePermission(Permission.MANAGE_ASSETS);
+  const user = await requirePermission(Permission.MANAGE_ASSETS);
   const data = await readAssetInput(formData);
 
-  const asset = await prisma.asset.create({ data });
+  const asset = await prisma.$transaction(async (transaction) => {
+    const createdAsset = await transaction.asset.create({
+      data,
+      select: { id: true, name: true },
+    });
+
+    await recordAuditEvent(
+      {
+        userId: user.id,
+        action: AuditAction.CREATE,
+        entityType: AuditEntityType.ASSET,
+        entityId: createdAsset.id,
+        description: auditDescriptions.assetCreated(createdAsset.name),
+      },
+      transaction
+    );
+
+    return createdAsset;
+  });
 
   revalidatePath("/assets");
   redirect(`/assets/${asset.id}`);
 }
 
 export async function updateAsset(assetId: string, formData: FormData) {
-  await requirePermission(Permission.MANAGE_ASSETS);
+  const user = await requirePermission(Permission.MANAGE_ASSETS);
   const data = await readAssetInput(formData);
 
-  await prisma.asset.update({
-    where: { id: assetId },
-    data,
+  await prisma.$transaction(async (transaction) => {
+    const asset = await transaction.asset.update({
+      where: { id: assetId },
+      data,
+      select: { id: true, name: true },
+    });
+
+    await recordAuditEvent(
+      {
+        userId: user.id,
+        action: AuditAction.UPDATE,
+        entityType: AuditEntityType.ASSET,
+        entityId: asset.id,
+        description: auditDescriptions.assetUpdated(asset.name),
+      },
+      transaction
+    );
   });
 
   revalidatePath("/assets");
@@ -124,16 +160,30 @@ export async function updateAsset(assetId: string, formData: FormData) {
 }
 
 export async function archiveAsset(assetId: string, formData: FormData) {
-  await requirePermission(Permission.MANAGE_ASSETS);
+  const user = await requirePermission(Permission.MANAGE_ASSETS);
   const confirmed = formData.get("confirmArchive") === "on";
 
   if (!confirmed) {
     throw new Error("Please confirm before archiving this asset.");
   }
 
-  await prisma.asset.update({
-    where: { id: assetId },
-    data: { status: AssetStatus.ARCHIVED },
+  await prisma.$transaction(async (transaction) => {
+    const asset = await transaction.asset.update({
+      where: { id: assetId },
+      data: { status: AssetStatus.ARCHIVED },
+      select: { id: true, name: true },
+    });
+
+    await recordAuditEvent(
+      {
+        userId: user.id,
+        action: AuditAction.STATUS_CHANGE,
+        entityType: AuditEntityType.ASSET,
+        entityId: asset.id,
+        description: auditDescriptions.assetArchived(asset.name),
+      },
+      transaction
+    );
   });
 
   revalidatePath("/assets");
