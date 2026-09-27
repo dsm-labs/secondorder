@@ -201,9 +201,37 @@ npm run lint
 npm run build
 ```
 
-## Screenshots
+## Product Tour
 
-Repository screenshots are not committed yet. The planned capture set and filenames are documented in [docs/screenshots/README.md](docs/screenshots/README.md); the deployed application is available through the live demo above.
+### Dashboard
+
+Organization-wide security posture at a glance, including open findings, critical organizational risks, overdue remediation, department exposure, and highest-risk assets.
+
+<img src="docs/screenshots/dashboard.png" alt="SecondOrder dashboard showing security and remediation summaries" width="900">
+
+### Business-Aware Risk Assessment
+
+SecondOrder's core differentiator: a deterministic assessment that combines CVSS and technical severity with asset criticality, business impact, data sensitivity, and internet exposure while showing assessment freshness and the resulting organizational risk.
+
+<img src="docs/screenshots/risk-assessment.png" alt="SecondOrder risk assessment showing technical and business context behind an organizational risk score" width="900">
+
+### Vulnerability Management
+
+A searchable, filterable finding inventory connects each vulnerability to its affected asset, technical severity, detection date, and current status.
+
+<img src="docs/screenshots/vulnerabilities.png" alt="SecondOrder vulnerability inventory with search, filters, affected assets, severity, and status" width="900">
+
+### Remediation Operations
+
+The remediation workspace brings critical unresolved work, organizational risk, assignments, due dates, overdue state, and team workload into one operational view.
+
+<img src="docs/screenshots/remediation.png" alt="SecondOrder remediation workspace showing critical work and assignee workload" width="900">
+
+### Audit Log
+
+Security managers can review timestamped authentication activity and authorized business changes by user, action, entity, and description.
+
+<img src="docs/screenshots/audit-log.png" alt="SecondOrder audit log showing timestamped authentication and business events" width="900">
 
 ## Project Structure
 
