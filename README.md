@@ -10,7 +10,7 @@ SecondOrder is an enterprise-style cybersecurity risk management application tha
 - Password: `SecondOrderPublic2026!`
 - Role: Executive (read-only)
 
-SecondOrder v1 is feature-complete and deployed on Vercel.
+SecondOrder v1 is deployed on Vercel.
 
 ## Overview
 
@@ -26,7 +26,7 @@ SecondOrder links findings to assets, ownership, and remediation so technical da
 - A deterministic, business-aware organizational risk engine with factor-level explanations
 - Risk prioritization and reassessment workflows
 - Remediation task assignment, due dates, overdue detection, workload views, and status tracking
-- Auth.js credential authentication with bcrypt password hashing
+- Auth.js credentials-based authentication with bcrypt password hashing
 - Server-enforced role-based access control for four internal user roles
 - Transactional audit logging for authentication and business mutations
 - Role-aware operational dashboards and executive/security reports
@@ -119,7 +119,7 @@ See [Architecture](docs/architecture.md) for system and workflow diagrams.
 
 ## Security Design
 
-The application uses credential authentication, bcrypt password hashes, JWT-backed Auth.js sessions, protected application routes, database-verified roles, server-side authorization, security headers, and transactional audit events. Imported files are treated as untrusted input and are parsed and validated before any write is allowed.
+The application uses credentials-based authentication, bcrypt password hashes, JWT-backed Auth.js sessions, protected application routes, database-verified roles, server-side authorization, security headers, and transactional audit events. Imported files are treated as untrusted input and are parsed and validated before any write is allowed.
 
 See [Security Design](docs/security.md) for the implemented controls and project scope.
 
@@ -180,7 +180,7 @@ The live application runs on Vercel with Neon PostgreSQL. See the [Vercel and Ne
    Copy-Item .env.example .env
    ```
 
-4. Configure the required variables in `.env`. Of course, never commit this file.
+4. Configure the required variables in `.env`. Don't commit this file.
 
    | Variable | Purpose |
    | --- | --- |
@@ -208,7 +208,7 @@ If PowerShell execution policy blocks `npm.ps1` or `npx.ps1`, use `npm.cmd` and 
 
 ## Demo Users
 
-The seed creates fictional accounts for each application role. The role-coverage accounts use the password supplied through `DEMO_USER_PASSWORD`. The separate read-only account uses `PUBLIC_DEMO_PASSWORD`. Neither password is stored in this repository or required by the running application.
+The seed creates fictional accounts for each application role. The four role-specific demo accounts use the password supplied through `DEMO_USER_PASSWORD`. The separate public read-only account uses `PUBLIC_DEMO_PASSWORD`. Only the public demo credential is intentionally documented above; the private role-account password is not stored in the repository.
 
 | Name | Email | Role |
 | --- | --- | --- |
@@ -255,4 +255,4 @@ samples/          Synthetic vulnerability import data
 
 ## Project Scope
 
-SecondOrder is a deployed portfolio project and is not a claim of formal security certification or enterprise production readiness. Historical risk snapshots, scanner-specific integrations, MFA, self-service account management, and exports are outside the current v1 implementation.
+SecondOrder is a deployed demonstration application and is not a claim of formal security certification or enterprise production readiness.
