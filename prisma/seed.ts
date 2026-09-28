@@ -33,6 +33,7 @@ const ids = {
     liam: "aaaaaaaa-6666-4666-8666-aaaaaaaaaaaa",
     ava: "aaaaaaaa-7777-4777-8777-aaaaaaaaaaaa",
     jordan: "aaaaaaaa-8888-4888-8888-aaaaaaaaaaaa",
+    publicDemo: "aaaaaaaa-9999-4999-8999-aaaaaaaaaaaa",
   },
   assets: {
     customerPortal: "bbbbbbbb-1111-4111-8111-bbbbbbbbbbbb",
@@ -138,6 +139,14 @@ const users = [
     departmentId: ids.departments.finance,
   },
 ] as const;
+
+const publicDemoUser = {
+  id: ids.users.publicDemo,
+  name: "SecondOrder Demo",
+  email: "demo@secondorder-demo.example",
+  role: UserRole.EXECUTIVE,
+  departmentId: ids.departments.executive,
+} as const;
 
 const assets = [
   {
@@ -411,10 +420,21 @@ function auditEventId(number: string) {
 
 async function main() {
   const demoPassword = process.env.DEMO_USER_PASSWORD;
+  const publicDemoPassword = process.env.PUBLIC_DEMO_PASSWORD;
 
   if (!demoPassword || demoPassword.length < 12 || truncates(demoPassword)) {
     throw new Error(
       "Set DEMO_USER_PASSWORD to at least 12 characters (and at most 72 UTF-8 bytes) before seeding."
+    );
+  }
+
+  if (
+    !publicDemoPassword ||
+    publicDemoPassword.length < 12 ||
+    truncates(publicDemoPassword)
+  ) {
+    throw new Error(
+      "Set PUBLIC_DEMO_PASSWORD to at least 12 characters (and at most 72 UTF-8 bytes) before seeding."
     );
   }
 
@@ -435,6 +455,14 @@ async function main() {
       create: { ...user, passwordHash },
     });
   }
+
+  const publicDemoPasswordHash = await hash(publicDemoPassword, 12);
+
+  await prisma.user.upsert({
+    where: { id: publicDemoUser.id },
+    update: { ...publicDemoUser, passwordHash: publicDemoPasswordHash },
+    create: { ...publicDemoUser, passwordHash: publicDemoPasswordHash },
+  });
 
   for (const asset of assets) {
     await prisma.asset.upsert({
@@ -576,7 +604,7 @@ async function main() {
   console.log("Prepared SecondOrder demo seed data.");
   console.log({
     departments: departments.length,
-    users: users.length,
+    users: users.length + 1,
     assets: assets.length,
     vulnerabilities: vulnerabilities.length,
     riskRecords: riskProfiles.length,

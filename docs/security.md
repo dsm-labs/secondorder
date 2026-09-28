@@ -49,7 +49,9 @@ See the [Vulnerability Import Guide](vulnerability-imports.md) for the accepted 
 
 ## Environment And Database Safety
 
-Database URLs, the Auth.js secret, and the demo seed password belong only in local or deployment environment configuration. `.env` files are ignored, while `.env.example` contains variable names with blank placeholders. The deterministic seed hashes `DEMO_USER_PASSWORD` before storing it and does not contain a real password.
+Database URLs, the Auth.js secret, and the original shared demo password belong only in local or deployment environment configuration. `.env` files are ignored, while `.env.example` contains variable names with blank placeholders.
+
+The recruiter account is separate from the original eight seeded users. During seeding, `DEMO_USER_PASSWORD` is hashed for the original accounts, while `PUBLIC_DEMO_PASSWORD` is hashed only for the recruiter account. The recruiter credential is intentionally published in the README and uses the existing Executive role, whose server-enforced permissions are read-only. Publishing it does not expose the credentials for Analyst, IT Admin, or Security Manager accounts. Neither seed variable is read by the deployed application at runtime, logged, or sent to the browser.
 
 Prisma Client runs only on the server through the Neon adapter. Server-rendered reads and Server Actions prevent database credentials and the Prisma client from entering browser bundles.
 
