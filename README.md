@@ -188,7 +188,7 @@ The live application runs on Vercel with Neon PostgreSQL. See the [Vercel and Ne
    | `SHADOW_DATABASE_URL` | Separate database used by `prisma migrate dev` to evaluate migrations |
    | `AUTH_SECRET` | Strong random secret used to protect Auth.js session data |
    | `DEMO_USER_PASSWORD` | Demo password hashed into the deterministic seeded user accounts; must be at least 12 characters and at most 72 UTF-8 bytes |
-   | `PUBLIC_DEMO_PASSWORD` | Separate password hashed into the read-only recruiter demo account; required only when running the seed and subject to the same length limits |
+   | `PUBLIC_DEMO_PASSWORD` | Separate password hashed into the read-only demo account; required only when running the seed and subject to the same length limits |
 
 5. Generate Prisma Client, apply the committed migrations, and seed the fictional demo company.
 
@@ -208,7 +208,7 @@ If PowerShell execution policy blocks `npm.ps1` or `npx.ps1`, use `npm.cmd` and 
 
 ## Demo Users
 
-The seed creates fictional accounts for each application role. The role-coverage accounts use the password supplied through `DEMO_USER_PASSWORD`. The separate read-only recruiter account uses `PUBLIC_DEMO_PASSWORD`. Neither password is stored in this repository or required by the running application.
+The seed creates fictional accounts for each application role. The role-coverage accounts use the password supplied through `DEMO_USER_PASSWORD`. The separate read-only account uses `PUBLIC_DEMO_PASSWORD`. Neither password is stored in this repository or required by the running application.
 
 | Name | Email | Role |
 | --- | --- | --- |
