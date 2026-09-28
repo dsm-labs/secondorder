@@ -180,7 +180,7 @@ The live application runs on Vercel with Neon PostgreSQL. See the [Vercel and Ne
    Copy-Item .env.example .env
    ```
 
-4. Configure the required variables in `.env`. Never commit this file.
+4. Configure the required variables in `.env`. Of course, never commit this file.
 
    | Variable | Purpose |
    | --- | --- |
