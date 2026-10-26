@@ -12,3 +12,6 @@ pnpm-debug.log*
 *.tsbuildinfo
 
 /src/generated/prisma
+
+# Local AI agent instructions
+AGENTS.md
