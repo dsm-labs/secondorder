@@ -158,14 +158,14 @@ The live application runs on Vercel with Neon PostgreSQL. See the [Vercel and Ne
 1. Clone and enter the repository.
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/dsm-labs/secondorder.git
    cd secondorder
    ```
 
 2. Install dependencies.
 
    ```bash
-   npm install
+   npm ci
    ```
 
 3. Create a local environment file from the example. On macOS or Linux:
